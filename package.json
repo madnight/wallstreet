@@ -1,0 +1,22 @@
+{
+  "name": "stocks-cli",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.ls",
+  "scripts": {
+    "start": "lsc index.ls",
+    "watch": "lsc -w index.ls"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "alphavantage": "^1.2.5",
+    "asciichart": "^1.5.9",
+    "axios": "^0.19.0",
+    "human-readable-numbers": "^0.9.5",
+    "livescript": "^1.6.0",
+    "lodash": "^4.17.15",
+    "node-fetch": "^2.6.0",
+    "node-iex-cloud": "^0.0.4"
+  }
+}
