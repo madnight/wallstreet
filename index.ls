@@ -1,70 +1,57 @@
 require! {
   axios
   path
-  'human-readable-numbers': { toHumanString }
-  'lodash/fp': { forEach, dropRight, drop, last, flatMap, map, values, tail, flatMap }
-  'node-iex-cloud': { IEXCloudClient }
-  'node-fetch': fetch
+  asciichart
+  \lodash/fp              : { forEach, last, flatMap, map, values, flatMap, defaultTo}
+  \human-readable-numbers : { toHumanString }
+  \node-iex-cloud         : { IEXCloudClient }
+  \node-fetch             : fetch
 }
 
-const asciichart                    = require ('asciichart')
-
-const alpha = require('alphavantage')({ key: 'qweqweqwe' })
+alpha = require \alphavantage key: \qweqweqwe
 
 iex = new IEXCloudClient fetch,
     sandbox: false
-    publishable: "pk_64fdeb84e42e4d239b3e87ab58d76e09"
-    version: "stable"
+    publishable: \pk_64fdeb84e42e4d239b3e87ab58d76e09
+    version: \stable
 
-# token = "pk_64fdeb84e42e4d239b3e87ab58d76e09"
-# baseURL = "https://cloud.iexapis.com/stable/"
-# batchAPI = "/stock/market/batch?symbols="
-# types = "&types=quote&token="
-# (await require("axios")(baseURL + batchAPI + it + types + token)).data
+COL_PAD = 9
+DELIM_LEN = 109
+getQuote = ->> await iex.symbols(it).batch \quote
+stocks = <[ msft googl aapl nflx dis amnz fb brk.b baba v qqq spy ]>.sort!
+plusSign = -> if (it > 0) then \+ + it else  it
+pad = (.toString!padStart(COL_PAD))
+tablePad = (.padEnd(COL_PAD))
+colNames = [tablePad \Symbol] ++
+<[ Price Change Change% AvgVolume P/E MktCap Week52Low Week52High YTDChange ]>
+dollar = -> \$ + it.toFixed(2)
+percentage = -> (it * 100).toFixed(2) + \%
+humanString = -> if it then toHumanString it
 
-getQuote = ->> await iex.symbols(it).batch "quote"
-
-getQuote = ->> await iex.symbols(it).batch "quote"
-
-stocks = <[ msft googl aapl nflx dis amnz fb brk.b baba v ]>.sort!
-plusSign = -> if (it > 0) then "+" + it else  it
-pad = -> it.toString!padStart(9)
-colNames = ["Symbol".padEnd(9)] ++ <[ Price Change Change% AvgVolume P/E MktCap Week52Low Week52High YTDChange ]>
-
-main = ->>
-    console.log '\033[2J'
-    # console.log((await getQuote(stocks)))
+do ->>
+    console.log \\033[2J
     console.log map(pad, colNames) * "  "
-    console.log "-------------------------------------------------------------------------------------------------------------"
-    (await getQuote(stocks))
+    console.log "-" * DELIM_LEN
+    (await getQuote <| stocks)
     |> map 'quote'
-    |> map( (v) ->
-        map(pad)([
-         v.symbol.padEnd(9),
-         ("$" + v.latestPrice.toFixed(2)),
-         # ("$" + v.close),
-         # "$" + v.high,
-         # "$" + v.low,
-         plusSign(v.change),
-         plusSign((v.changePercent * 100).toFixed(2)) + "%",
-         # toHumanString(v.previousVolume),
-         toHumanString(v.avgTotalVolume),
-         if v.peRatio then (v.peRatio).toFixed(1) else "",
-         if v.marketCap then toHumanString(v.marketCap) else  "",
-         "$" + v.week52Low.toFixed(2),
-         "$" + v.week52High.toFixed(2),
-         plusSign((v.ytdChange * 100).toFixed(2)) + "%",
-        ]))
+    |> map( ->
+        [
+         it.symbol               |> tablePad
+         it.latestPrice          |> dollar
+         it.change               |> plusSign
+         it.changePercent        |> plusSign     |> percentage
+         it.avgTotalVolume       |> humanString
+         it.peRatio?.toFixed(1)
+         it.marketCap            |> humanString
+         it.week52Low            |> dollar
+         it.week52High           |> dollar
+         it.ytdChange            |> percentage   |> plusSign
+        ]
+        |> map defaultTo ""
+        |> map pad
+    )
     |> map(-> it * "  ")
     |> forEach console.log
-
-# main!
-
-console.log '\033[2J'
-# iex
-#   .symbol("aapl")
-#   .chart("3m", { chartCloseOnly: true, chartSimplify: false })
-#   .then((res) -> console.log(asciichart.plot(map('close',res), { height: 14 })))
 
 chart = ->>
     (await alpha.data.monthly("msft"))
@@ -76,4 +63,5 @@ chart = ->>
     |> console.log
     # |> asciichart.plot(map('close',res), { height: 14 }))
 
-chart!
+# chart!
+# main!
