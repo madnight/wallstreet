@@ -2,21 +2,26 @@ require! {
   axios
   path
   asciichart
-  \lodash/fp              : { forEach, last, flatMap, map, values, flatMap, defaultTo}
+  commander
+  \lodash/fp              : { tail, forEach, last, flatMap, map, values, flatMap, defaultTo }
   \human-readable-numbers : { toHumanString }
   \node-iex-cloud         : { IEXCloudClient }
   \node-fetch             : fetch
 }
 
-alpha = require \alphavantage key: \qweqweqwe
+commander
+  .option('-c, --chart', 'chart')
+  .option('-w, --watch')
+  .parse(process.argv)
+
+alpha = (require \alphavantage)(key: \qweqweqwe)
 
 iex = new IEXCloudClient fetch,
     sandbox: false
     publishable: \pk_64fdeb84e42e4d239b3e87ab58d76e09
     version: \stable
 
-COL_PAD = 9
-DELIM_LEN = 109
+[COL_PAD, DELIM_LEN] = [9 109]
 getQuote = ->> await iex.symbols(it).batch \quote
 stocks = <[ msft googl aapl nflx dis amnz fb brk.b baba v qqq spy ]>.sort!
 plusSign = -> if (it > 0) then \+ + it else  it
@@ -28,7 +33,7 @@ dollar = -> \$ + it.toFixed(2)
 percentage = -> (it * 100).toFixed(2) + \%
 humanString = -> if it then toHumanString it
 
-do ->>
+main = ->>
     console.log \\033[2J
     console.log map(pad, colNames) * "  "
     console.log "-" * DELIM_LEN
@@ -54,7 +59,7 @@ do ->>
     |> forEach console.log
 
 chart = ->>
-    (await alpha.data.monthly("msft"))
+    (await alpha.data.intraday("msft"))
     |> map( (x) -> x )
     |> tail
     |> flatMap(map(values))
@@ -63,5 +68,9 @@ chart = ->>
     |> console.log
     # |> asciichart.plot(map('close',res), { height: 14 }))
 
-# chart!
-# main!
+do ->>
+    if commander.chart
+    then chart!
+    else main!
+
+
