@@ -1,5 +1,6 @@
 require! {
   asciichart
+  chalk
   axios
   commander
   fs
@@ -49,24 +50,39 @@ dollar = -> \$ + it.toFixed(2)
 percentage = -> (it * 100).toFixed(2) + \%
 humanString = -> if it then toHumanString it
 
-# Table of quotes from watchlistk
+# Colors
+percentColor = ->
+    | "-" in it => chalk.red   <| pad it
+    | otherwise => chalk.green <| pad it
+numColor = ->
+    | it < 0    => chalk.red   <| pad it
+    | otherwise => chalk.green <| pad it
+peColor = ->
+    | it < 10   => chalk.green <| pad it
+    | it > 40   => chalk.red   <| pad it
+    | otherwise => it
+symColor = (p) -> (s) ->
+    | p < 0     => chalk.bold  <| chalk.red   <| pad s
+    | otherwise => chalk.bold  <| chalk.green <| pad s
+
+# Table of quotes from watchlist
 quotes = ->>
     console.log map(pad, colNames) * "  "
     console.log "-" * DELIM_LEN
     (await getQuote <| stocks)
     |> map 'quote'
     |> map( ->
-        [
-         it.symbol               |> tablePad
-         it.latestPrice          |> dollar
-         it.change               |> plusSign
-         it.changePercent        |> plusSign     |> percentage
-         it.avgTotalVolume       |> humanString
-         it.peRatio?.toFixed(1)
-         it.marketCap            |> humanString
-         it.week52Low            |> dollar
-         it.week52High           |> dollar
-         it.ytdChange            |> percentage   |> plusSign
+        [ # Parse API data in human readable format
+         it.symbol              |> tablePad     |> symColor it.change
+         it.latestPrice         |> dollar
+         it.change?.toFixed(2)  |> plusSign     |> numColor
+         it.changePercent       |> plusSign     |> percentage |> percentColor
+         it.avgTotalVolume      |> humanString
+         it.peRatio?.toFixed(1) |> defaultTo "" |> peColor
+         it.marketCap           |> humanString
+         it.week52Low           |> dollar
+         it.week52High          |> dollar
+         it.ytdChange           |> percentage   |> plusSign   |> percentColor
         ]
         |> map defaultTo ""
         |> map pad
