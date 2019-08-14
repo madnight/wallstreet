@@ -21,6 +21,13 @@ alphavantage@^1.2.5:
     request "^2.88.0"
     request-promise-native "^1.0.7"
 
+array-interpolatejs@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/array-interpolatejs/-/array-interpolatejs-1.0.2.tgz#1d5b088bb486e1b089714ebac869b06c7e71f23d"
+  integrity sha1-HVsIi7SG4bCJcU66yGmwbH5x8j0=
+  dependencies:
+    lodash "^4.17.4"
+
 asciichart@^1.5.9:
   version "1.5.9"
   resolved "https://registry.yarnpkg.com/asciichart/-/asciichart-1.5.9.tgz#09707b13e2d4cb71b13dd1866fffcd15f76c005c"
@@ -285,7 +292,7 @@ livescript@^1.6.0:
     source-map "=0.6.1"
     source-map-support "=0.5.6"
 
-lodash@^4.17.11, lodash@^4.17.15:
+lodash@^4.17.11, lodash@^4.17.15, lodash@^4.17.4:
   version "4.17.15"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.15.tgz#b447f6670a0455bbfeedd11392eff330ea097548"
   integrity sha512-8xOcRHvCjnocdS5cpwXQXVzmmh5e5+saE2QGoeQmbKmRS6J3VQppPOIt0MnmE+4xlZoumy0GPG0D0MVIQbNA1A==

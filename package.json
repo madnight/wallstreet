@@ -6,12 +6,13 @@
   "scripts": {
     "start": "lsc index.ls",
     "watch": "lsc -w index.ls",
-    "watch-chart": "lsc -w index.ls -c msft"
+    "watch-chart": "lsc -w index.ls"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "alphavantage": "^1.2.5",
+    "array-interpolatejs": "^1.0.2",
     "asciichart": "^1.5.9",
     "axios": "^0.19.0",
     "commander": "^3.0.0",

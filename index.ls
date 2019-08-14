@@ -3,17 +3,28 @@ require! {
   path
   asciichart
   commander
-  \lodash/fp              : { identity, tail, forEach, last, flatMap, map, values, flatMap, defaultTo }
+  \lodash/fp              : { identity, tail, forEach, last, flatMap, map }
+  \lodash/fp              : { values, flatMap, defaultTo }
   \human-readable-numbers : { toHumanString }
   \node-iex-cloud         : { IEXCloudClient }
   \node-fetch             : fetch
   \yahoo-stocks           : { lookup, history }
+  \array-interpolatejs   :  { interpolateArray }
 }
 
 commander
   .option('-c, --chart <string>', 'chart for stock symbol e.g. MSFT')
+  .option('-i, --interval <string>', 'Interval of price changes: 1m, 1d, 5d, 1mo, 1y')
+  .option('-r, --range <string>', 'Range of dates to include: 1m, 1d, 5d, 1mo, 1y')
+  .option('-h, --height <int>', 'Height of the chart')
+  .option('--width <int>', 'Width of the chart')
   .option('-w, --watch')
   .parse(process.argv)
+
+interval = commander.interval |> defaultTo "1d"
+range    = commander.range    |> defaultTo "5y"
+height   = commander.height   |> parseInt       |> defaultTo 14
+width    = commander.width    |> parseInt       |> defaultTo 80
 
 iex = new IEXCloudClient fetch,
     sandbox: false
@@ -33,7 +44,6 @@ percentage = -> (it * 100).toFixed(2) + \%
 humanString = -> if it then toHumanString it
 
 main = ->>
-    console.log \\033[2J
     console.log map(pad, colNames) * "  "
     console.log "-" * DELIM_LEN
     (await getQuote <| stocks)
@@ -58,11 +68,12 @@ main = ->>
     |> forEach console.log
 
 chart = ->>
-    (await history(commander.chart, { interval: "1d", range: "3mo" }))
+    (await history(commander.chart, { interval: interval, range: range }))
     |> map identity
     |> tail
     |> (flatMap <| map 'close')
-    |> (-> asciichart.plot(it, { height: 14 }))
+    |> interpolateArray(width)
+    |> (-> asciichart.plot(it, { height: height }))
     |> console.log
 
 do ->>
