@@ -1,25 +1,26 @@
 require! {
-  axios
-  path
   asciichart
+  axios
   commander
-  \lodash/fp              : { identity, tail, forEach, last, flatMap, map }
-  \lodash/fp              : { values, flatMap, defaultTo }
+  fs
+  path
+  \array-interpolatejs    : { interpolateArray }
   \human-readable-numbers : { toHumanString }
-  \node-iex-cloud         : { IEXCloudClient }
+  \lodash/fp              : { get, identity, tail, forEach, last, flatMap, map }
+  \lodash/fp              : { values, flatMap, defaultTo }
   \node-fetch             : fetch
+  \node-iex-cloud         : { IEXCloudClient }
   \yahoo-stocks           : { lookup, history }
-  \array-interpolatejs   :  { interpolateArray }
 }
 
 commander
-  .option('-c, --chart <string>', 'chart for stock symbol e.g. MSFT')
-  .option('-i, --interval <string>', 'Interval of price changes: 1m, 1d, 5d, 1mo, 1y')
-  .option('-r, --range <string>', 'Range of dates to include: 1m, 1d, 5d, 1mo, 1y')
-  .option('-h, --height <int>', 'Height of the chart')
-  .option('--width <int>', 'Width of the chart')
-  .option('-w, --watch')
-  .parse(process.argv)
+  .option '-c, --chart <string>' 'chart for stock symbol e.g. MSFT'
+  .option '-i, --interval <string>' 'Interval of price changes: 1m, 1d, 5d, 1mo, 1y'
+  .option '-r, --range <string>' 'Range of dates to include: 1m, 1d, 5d, 1mo, 1y'
+  .option '-h, --height <int>' 'Height of the chart'
+  .option '--width <int>' 'Width of the chart'
+  .option '-w, --watch'
+  .parse process.argv
 
 interval = commander.interval |> defaultTo "1d"
 range    = commander.range    |> defaultTo "5y"
@@ -33,7 +34,7 @@ iex = new IEXCloudClient fetch,
 
 [COL_PAD, DELIM_LEN] = [9 109]
 getQuote = ->> await iex.symbols(it).batch \quote
-stocks = <[ msft googl aapl nflx dis amnz fb brk.b baba v qqq spy ]>.sort!
+stocks = fs.readFileSync('watchlist.json') |> JSON.parse |> get "stocks"
 plusSign = -> if (it > 0) then \+ + it else  it
 pad = (.toString!padStart(COL_PAD))
 tablePad = (.padEnd(COL_PAD))
