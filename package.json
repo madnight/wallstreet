@@ -5,7 +5,8 @@
   "main": "index.ls",
   "scripts": {
     "start": "lsc index.ls",
-    "watch": "lsc -w index.ls"
+    "watch": "lsc -w index.ls",
+    "watch-chart": "lsc -w index.ls -c msft"
   },
   "author": "",
   "license": "ISC",
@@ -18,6 +19,7 @@
     "livescript": "^1.6.0",
     "lodash": "^4.17.15",
     "node-fetch": "^2.6.0",
-    "node-iex-cloud": "^0.0.4"
+    "node-iex-cloud": "^0.0.4",
+    "yahoo-stocks": "^2.0.4"
   }
 }

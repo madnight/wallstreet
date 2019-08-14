@@ -511,3 +511,8 @@ wordwrap@~1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/wordwrap/-/wordwrap-1.0.0.tgz#27584810891456a4171c8d0226441ade90cbcaeb"
   integrity sha1-J1hIEIkUVqQXHI0CJkQa3pDLyus=
+
+yahoo-stocks@^2.0.4:
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/yahoo-stocks/-/yahoo-stocks-2.0.4.tgz#41efa20b1a95771b2f993a4ebf19d49c02b34c66"
+  integrity sha512-rSlzNXpVbQUuldZxfbJ61SAZzrWzSyLvniCnFz0y1mNh0rSoCNRQxgyYadxIClp98X8KRko0Dk1fhHpns9FAVw==

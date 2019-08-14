@@ -3,18 +3,17 @@ require! {
   path
   asciichart
   commander
-  \lodash/fp              : { tail, forEach, last, flatMap, map, values, flatMap, defaultTo }
+  \lodash/fp              : { identity, tail, forEach, last, flatMap, map, values, flatMap, defaultTo }
   \human-readable-numbers : { toHumanString }
   \node-iex-cloud         : { IEXCloudClient }
   \node-fetch             : fetch
+  \yahoo-stocks           : { lookup, history }
 }
 
 commander
-  .option('-c, --chart', 'chart')
+  .option('-c, --chart <string>', 'chart for stock symbol e.g. MSFT')
   .option('-w, --watch')
   .parse(process.argv)
-
-alpha = (require \alphavantage)(key: \qweqweqwe)
 
 iex = new IEXCloudClient fetch,
     sandbox: false
@@ -59,18 +58,14 @@ main = ->>
     |> forEach console.log
 
 chart = ->>
-    (await alpha.data.intraday("msft"))
-    |> map( (x) -> x )
+    (await history(commander.chart, { interval: "1d", range: "3mo" }))
+    |> map identity
     |> tail
-    |> flatMap(map(values))
-    |> map( (x) -> x[3] )
-    # |> asciichart.plot
+    |> (flatMap <| map 'close')
+    |> (-> asciichart.plot(it, { height: 14 }))
     |> console.log
-    # |> asciichart.plot(map('close',res), { height: 14 }))
 
 do ->>
     if commander.chart
     then chart!
     else main!
-
-
