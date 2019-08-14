@@ -13,6 +13,7 @@ require! {
   \yahoo-stocks           : { lookup, history }
 }
 
+# Comand Line Parsing
 commander
   .option '-c, --chart <string>' 'chart for stock symbol e.g. MSFT'
   .option '-i, --interval <string>' 'Interval of price changes: 1m, 1d, 5d, 1mo, 1y'
@@ -27,12 +28,16 @@ range    = commander.range    |> defaultTo "5y"
 height   = commander.height   |> parseInt       |> defaultTo 14
 width    = commander.width    |> parseInt       |> defaultTo 80
 
+# Quotes API
 iex = new IEXCloudClient fetch,
     sandbox: false
     publishable: \pk_64fdeb84e42e4d239b3e87ab58d76e09
     version: \stable
 
+# Constants
 [COL_PAD, DELIM_LEN] = [9 109]
+
+# Helper Functions
 getQuote = ->> await iex.symbols(it).batch \quote
 stocks = fs.readFileSync('watchlist.json') |> JSON.parse |> get "stocks"
 plusSign = -> if (it > 0) then \+ + it else  it
@@ -44,7 +49,8 @@ dollar = -> \$ + it.toFixed(2)
 percentage = -> (it * 100).toFixed(2) + \%
 humanString = -> if it then toHumanString it
 
-main = ->>
+# Table of quotes from watchlistk
+quotes = ->>
     console.log map(pad, colNames) * "  "
     console.log "-" * DELIM_LEN
     (await getQuote <| stocks)
@@ -68,6 +74,7 @@ main = ->>
     |> map(-> it * "  ")
     |> forEach console.log
 
+# Stock chart of a symbol e.g. AAPL
 chart = ->>
     (await history(commander.chart, { interval: interval, range: range }))
     |> map identity
@@ -77,7 +84,8 @@ chart = ->>
     |> (-> asciichart.plot(it, { height: height }))
     |> console.log
 
+# Main function / Entrypoint
 do ->>
     if commander.chart
     then chart!
-    else main!
+    else quotes!
