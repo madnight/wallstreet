@@ -10,6 +10,7 @@ require! {
   \lodash/fp              : { get, identity, tail, forEach, last, flatMap, map }
   \lodash/fp              : { values, flatMap, defaultTo }
   \node-fetch             : fetch
+  \configstore            : Configstore
   \node-iex-cloud         : { IEXCloudClient }
   \yahoo-stocks           : { lookup, history }
 }
@@ -30,17 +31,16 @@ height   = commander.height   |> parseInt       |> defaultTo 14
 width    = commander.width    |> parseInt       |> defaultTo 80
 
 # Quotes API
-iex = new IEXCloudClient fetch,
-    sandbox: false
-    publishable: \pk_64fdeb84e42e4d239b3e87ab58d76e09
-    version: \stable
+iex = new IEXCloudClient fetch, publishable: \pk_64fdeb84e42e4d239b3e87ab58d76e09
 
 # Constants
 [COL_PAD, DELIM_LEN] = [9 109]
 
 # Helper Functions
 getQuote = ->> await iex.symbols(it).batch \quote
-stocks = fs.readFileSync('watchlist.json') |> JSON.parse |> get "stocks"
+config = fs.readFileSync('watchlist.json')
+    |> JSON.parse
+    |> new Configstore(\stock-chart-cli, _)
 plusSign = -> if (it > 0) then \+ + it else  it
 pad = (.toString!padStart(COL_PAD))
 tablePad = (.padEnd(COL_PAD))
@@ -51,25 +51,28 @@ percentage = -> (it * 100).toFixed(2) + \%
 humanString = -> if it then toHumanString it
 
 # Colors
+red = chalk.red << pad
+green = chalk.green << pad
 percentColor = ->
-    | "-" in it => chalk.red   <| pad it
-    | otherwise => chalk.green <| pad it
+    | "-" in it => red it
+    | otherwise => green it
 numColor = ->
-    | it < 0    => chalk.red   <| pad it
-    | otherwise => chalk.green <| pad it
+    | it < 0    => red it
+    | otherwise => green it
 peColor = ->
-    | it < 10   => chalk.green <| pad it
-    | it > 40   => chalk.red   <| pad it
+    | it < 0    => red pad it
+    | it < 10   => green it
+    | it > 40   => red it
     | otherwise => it
-symColor = (p) -> (s) ->
-    | p < 0     => chalk.bold  <| chalk.red   <| pad s
-    | otherwise => chalk.bold  <| chalk.green <| pad s
+symColor = (price) -> (symbol) ->
+    | price < 0 => chalk.bold <| red symbol
+    | otherwise => chalk.bold <| green symbol
 
 # Table of quotes from watchlist
 quotes = ->>
     console.log map(pad, colNames) * "  "
     console.log "-" * DELIM_LEN
-    (await getQuote <| stocks)
+    (await getQuote <| config.get('stocks'))
     |> map 'quote'
     |> map( ->
         [ # Parse API data in human readable format
@@ -92,16 +95,13 @@ quotes = ->>
 
 # Stock chart of a symbol e.g. AAPL
 chart = ->>
-    (await history(commander.chart, { interval: interval, range: range }))
+    (await history(commander.chart, interval: interval, range: range ))
     |> map identity
     |> tail
     |> (flatMap <| map 'close')
-    |> interpolateArray(width)
-    |> (-> asciichart.plot(it, { height: height }))
+    |> interpolateArray width
+    |> asciichart.plot(_, height: height)
     |> console.log
 
 # Main function / Entrypoint
-do ->>
-    if commander.chart
-    then chart!
-    else quotes!
+do ->> if commander.chart then chart! else quotes!
