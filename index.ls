@@ -13,6 +13,8 @@ require! {
   \configstore            : Configstore
   \node-iex-cloud         : { IEXCloudClient }
   \yahoo-stocks           : { lookup, history }
+  \scrape-it              : scrapeIt
+  \cnn-market             : { cnnMarket }
 }
 
 # Comand Line Parsing
@@ -64,12 +66,23 @@ peColor = ->
     | it < 10   => green it
     | it > 40   => red it
     | otherwise => it
-symColor = (price) -> (symbol) ->
+symColor = (price, symbol) ~~>
     | price < 0 => chalk.bold <| red symbol
     | otherwise => chalk.bold <| green symbol
 
-# Table of quotes from watchlist
+# Table of market data and quotes from watchlist
 quotes = ->>
+    data = await cnnMarket()
+    process.stdout.write((chalk.bold "Dow".padEnd(7)) + data.Dow.padStart(10) + (" [" + data.DowChg + "|" + data.DowChgPcnt + "]").padEnd(20))
+    process.stdout.write((chalk.bold "HK".padEnd(7)) + data.Dow.padStart(10) + (" [" + data.DowChg + "|" + data.DowChgPcnt + "]").padEnd(20))
+    console.log((chalk.bold "Yield 10y".padEnd(9)) + data.Yield10Y.padStart(10) + (" [" + data.Yield10YChg + "]").padEnd(20))
+    process.stdout.write((chalk.bold "Nasdaq".padEnd(7)) + data.Nasdaq.padStart(10) + (" [" + data.NasdaqChg + "|" + data.NasdaqChgPcnt + "]").padEnd(20))
+    process.stdout.write((chalk.bold "London".padEnd(7)) + data.London.padStart(10) + (" [" + data.LondonChg + "|" + data.LondonChgPcnt + "]").padEnd(20))
+    console.log((chalk.bold "Oil".padEnd(9)) + data.Oil.padStart(10) + (" [" + data.OilChg + "]").padEnd(20))
+    process.stdout.write((chalk.bold "S&P500".padEnd(7)) + data.SP500.padStart(10) + (" [" + data.SP500Chg + "|" + data.SP500ChgPcnt + "]").padEnd(20))
+    process.stdout.write((chalk.bold "GER".padEnd(7)) + data.Germany.padStart(10) + (" [" + data.GermanyChg + "|" + data.GermanyChgPcnt + "]").padEnd(20))
+    console.log((chalk.bold "Gold".padEnd(9)) + data.Gold.padStart(10) + (" [" + data.GoldChg + "]").padEnd(20))
+    console.log ""
     console.log map(pad, colNames) * "  "
     console.log "-" * DELIM_LEN
     (await getQuote <| config.get('stocks'))
@@ -92,6 +105,7 @@ quotes = ->>
     )
     |> map(-> it * "  ")
     |> forEach console.log
+
 
 # Stock chart of a symbol e.g. AAPL
 chart = ->>
