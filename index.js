@@ -93,11 +93,9 @@ quotes = async () => {
   )
   console.log("\n\n"+[].join.call(map(pad, colNames), "  "))
   console.log("-".repeat(DELIM_LEN))
-  return forEach(console.log)(
-  map(i  => [].join.call(i, "  "))(
-    map(q => {
-    return map(pad)(
-    map(defaultTo(""))(
+  pipe(
+      map('quote'),
+      map( q =>
       [ // Parse API data in human readable format
         symColor(q.change)(tablePad(q.symbol)),
         dollar(q.latestPrice),
@@ -109,10 +107,13 @@ quotes = async () => {
         dollar(q.week52Low),
         dollar(q.week52High),
         percentColor(plusSign(percentage(q.ytdChange)))
-    ]))
-  })(
-  map('quote')(
-  (await getQuote(config.get('stocks')))))))
+      ]),
+     map(map(defaultTo(""))),
+     map(map(pad)),
+     map(i  => [].join.call(i, "  ")),
+     forEach(console.log)
+  )
+  ((await getQuote(config.get('stocks'))))
 }
 
 // Stock chart of a symbol e.g. AAPL
