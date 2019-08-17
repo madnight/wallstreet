@@ -390,6 +390,12 @@ cli-boxes@^1.0.0:
   resolved "https://registry.yarnpkg.com/cli-boxes/-/cli-boxes-1.0.0.tgz#4fa917c3e59c94a004cd61f8ee509da651687143"
   integrity sha1-T6kXw+WclKAEzWH47lCdplFocUM=
 
+cnbc-market@../cnbc-market:
+  version "1.0.0"
+  dependencies:
+    axios "^0.19.0"
+    lodash "^4.17.15"
+
 cnn-market@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/cnn-market/-/cnn-market-1.0.0.tgz#8f6f7c96200e7c143f984dc2b62efb61afda7888"
