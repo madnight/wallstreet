@@ -1,21 +1,20 @@
-const Configstore      = require('configstore')
-const IEXCloudClient   = require('node-iex-cloud').IEXCloudClient
-const asciichart       = require('asciichart')
-const axios            = require('axios')
-const chalk            = require('chalk')
-const cnnMarket        = require('cnn-market').cnnMarket
-const commander        = require('commander')
-const fetch            = require('node-fetch')
-const fs               = require('fs')
-const interpolateArray = require('array-interpolatejs').interpolateArray
-const path             = require('path')
-const scrapeIt         = require('scrape-it')
-const toHumanString    = require('human-readable-numbers').toHumanString
-const cnbcMarket       = require('cnbc-market').cnbcMarket
-
-const { tail, forEach, last, flatMap, map, find } = require('lodash/fp')
-const { identity, get, values, defaultTo, pipe }  = require('lodash/fp')
-const { lookup, history }                         = require('yahoo-stocks')
+const Configstore                           = require('configstore')
+const asciichart                            = require('asciichart')
+const axios                                 = require('axios')
+const chalk                                 = require('chalk')
+const commander                             = require('commander')
+const fetch                                 = require('node-fetch')
+const fs                                    = require('fs')
+const path                                  = require('path')
+const scrapeIt                              = require('scrape-it')
+const { IEXCloudClient }                    = require('node-iex-cloud')
+const { cnbcMarket }                        = require('cnbc-market')
+const { cnnMarket }                         = require('cnn-market')
+const { identity, values, defaultTo, pipe } = require('lodash/fp')
+const { interpolateArray }                  = require('array-interpolatejs')
+const { lookup, history }                   = require('yahoo-stocks')
+const { tail, forEach, flatMap, map, find } = require('lodash/fp')
+const { toHumanString }                     = require('human-readable-numbers')
 
 // Comand Line Parsing
 commander
@@ -23,6 +22,7 @@ commander
   .option('-i, --interval <string>', 'Interval of price changes: 1m, 1d, 5d, 1mo, 1y')
   .option('-r, --range <string>', 'Range of dates to include: 1m, 1d, 5d, 1mo, 1y')
   .option('-h, --height <int>', 'Height of the chart')
+  .option('-z, --zebra', 'Visual even-odd zebra-striped table mode')
   .option('--width <int>', 'Width of the chart')
   .option('-w, --watch')
   .parse(process.argv)
@@ -41,7 +41,7 @@ const iex = new IEXCloudClient(fetch,
 const {COL_PAD, DELIM_LEN} = {COL_PAD: 9, DELIM_LEN: 109}
 
 // Helper Functions
-const getQuote    = async (it) => await iex.symbols(it).batch('quote')
+const getQuote    = async i => await iex.symbols(i).batch('quote')
 const plusSign    = i => i > 0 ? '+' + i : i
 const pad         = i => i.toString().padStart(COL_PAD)
 const tablePad    = i => i.padEnd(COL_PAD)
@@ -61,7 +61,9 @@ const tableHead = (name, pad, symbol, chg, chgPcnt) =>
   process.stdout.write(chalk.bold(name.padEnd(pad)) + symbol.padStart(10)
     + (chgPcnt ? (" [" + chg + "|" + chgPcnt + "]").padStart(18).padEnd(22)
       : (" [" + chg + "]").padStart(9).padEnd(11))
-)
+  )
+const zebra = x => commander.zebra ?
+  x.map((y,i) => i % 2 ? map(pipe(chalk.bold, chalk.dim))(y) : y) : x
 
 // Colors
 const percentColor = i => i.includes("-") ? red(i) : green(i)
@@ -91,7 +93,7 @@ quotes = async () => {
     tableHead((i % 3 == 0 ? "\n" : "") +
       x.symbol, COL_PAD, x.value, x.change, x.changePcnt)
   )
-  console.log("\n\n"+[].join.call(map(pad, colNames), "  "))
+  console.log("\n\n"+ map(pad, colNames).join("  "))
   console.log("-".repeat(DELIM_LEN))
   pipe(
       map('quote'),
@@ -110,26 +112,22 @@ quotes = async () => {
       ]),
      map(map(defaultTo(""))),
      map(map(pad)),
-     map(i  => [].join.call(i, "  ")),
+     zebra,
+     map(i  => i.join("  ")),
      forEach(console.log)
-  )
-  ((await getQuote(config.get('stocks'))))
+  )((await getQuote(config.get('stocks'))))
 }
 
 // Stock chart of a symbol e.g. AAPL
 const chart = async () => {
-  return pipe(
+  pipe(
     map(identity),
     tail,
     flatMap(map('close')),
     interpolateArray(width),
     x => asciichart.plot(x, {height: height}),
     console.log
-  )(
-  await history(commander.chart, {
-    interval: interval,
-    range: range
-  }))
+  )(await history(commander.chart, { interval: interval, range: range }))
 }
 
 // Main function / Entrypoint
