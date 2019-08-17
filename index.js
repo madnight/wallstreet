@@ -13,9 +13,9 @@ const scrapeIt         = require('scrape-it')
 const toHumanString    = require('human-readable-numbers').toHumanString
 const cnbcMarket       = require('cnbc-market').cnbcMarket
 
-const { tail, forEach, last, flatMap, map }      = require('lodash/fp')
-const { identity, get, values, defaultTo, pipe } = require('lodash/fp')
-const { lookup, history }                        = require('yahoo-stocks')
+const { tail, forEach, last, flatMap, map, find } = require('lodash/fp')
+const { identity, get, values, defaultTo, pipe }  = require('lodash/fp')
+const { lookup, history }                         = require('yahoo-stocks')
 
 // Comand Line Parsing
 commander
@@ -57,6 +57,11 @@ const colNames    = [tablePad('Symbol')].concat(
   ['Price', 'Change', 'Change%', 'AvgVolume', 'P/E',
    'MktCap', 'Week52Low', 'Week52High', 'YTDChange']
 )
+const tableHead = (name, pad, symbol, chg, chgPcnt) =>
+  process.stdout.write(chalk.bold(name.padEnd(pad)) + symbol.padStart(10)
+    + (chgPcnt ? (" [" + chg + "|" + chgPcnt + "]").padStart(18).padEnd(22)
+      : (" [" + chg + "]").padStart(9).padEnd(11))
+)
 
 // Colors
 const percentColor = i => i.includes("-") ? red(i) : green(i)
@@ -74,23 +79,23 @@ const symColor = price => symbol =>
 
 // Table of market data and quotes from watchlist
 quotes = async () => {
-  const data = (await cnnMarket())
-  console.log((await cnbcMarket()))
-  process.stdout.write(chalk.bold("Dow".padEnd(7)) + data.Dow.padStart(10) + (" [" + data.DowChg + "|" + data.DowChgPcnt + "]").padEnd(20))
-  process.stdout.write(chalk.bold("HK".padEnd(7)) + data.Dow.padStart(10) + (" [" + data.DowChg + "|" + data.DowChgPcnt + "]").padEnd(20))
-  console.log(chalk.bold("Yield 10y".padEnd(9)) + data.Yield10Y.padStart(10) + (" [" + data.Yield10YChg + "]").padEnd(20))
-  process.stdout.write(chalk.bold("Nasdaq".padEnd(7)) + data.Nasdaq.padStart(10) + (" [" + data.NasdaqChg + "|" + data.NasdaqChgPcnt + "]").padEnd(20))
-  process.stdout.write(chalk.bold("London".padEnd(7)) + data.London.padStart(10) + (" [" + data.LondonChg + "|" + data.LondonChgPcnt + "]").padEnd(20))
-  console.log(chalk.bold("Oil".padEnd(9)) + data.Oil.padStart(10) + (" [" + data.OilChg + "]").padEnd(20))
-  process.stdout.write(chalk.bold("S&P500".padEnd(7)) + data.SP500.padStart(10) + (" [" + data.SP500Chg + "|" + data.SP500ChgPcnt + "]").padEnd(20))
-  process.stdout.write(chalk.bold("GER".padEnd(7)) + data.Germany.padStart(10) + (" [" + data.GermanyChg + "|" + data.GermanyChgPcnt + "]").padEnd(20))
-  console.log(chalk.bold("Gold".padEnd(9)) + data.Gold.padStart(10) + (" [" + data.GoldChg + "]").padEnd(20))
-  console.log("")
-  console.log([].join.call(map(pad, colNames), "  "))
+  const marketData = await cnnMarket()
+
+  // Print market table header
+  const f = i => find({ symbol: i }, marketData)
+  _ = [
+    f("DOW"),    f("HongKong"), f("Gold"),
+    f("S&P500"), f("London"),   f("Oil"),
+    f("NASDAQ"), f("Germany"),  f("Yield10y"),
+  ].map( (x, i) =>
+    tableHead((i % 3 == 0 ? "\n" : "") +
+      x.symbol, COL_PAD, x.value, x.change, x.changePcnt)
+  )
+  console.log("\n\n"+[].join.call(map(pad, colNames), "  "))
   console.log("-".repeat(DELIM_LEN))
   return forEach(console.log)(
   map(i  => [].join.call(i, "  "))(
-    map( q => {
+    map(q => {
     return map(pad)(
     map(defaultTo(""))(
       [ // Parse API data in human readable format
@@ -128,5 +133,4 @@ const chart = async () => {
 
 // Main function / Entrypoint
 const main = async () => commander.chart ?  chart() : quotes()
-
 main()
