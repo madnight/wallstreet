@@ -110,7 +110,8 @@ const symColor = price => symbol =>
 
 // Table of market data and quotes from watchlist
 quotes = async () => {
-  const marketData = await cnnMarket()
+  const [marketData, stocks] = await Promise.all([
+  cnnMarket(), getQuote(config.get('stocks'))])
 
   // Print market table header
   const f = i => find({ symbol: i }, marketData)
@@ -144,12 +145,13 @@ quotes = async () => {
      zebra,
      map(i  => i.join("  ")),
      forEach(console.log)
-  )((await getQuote(config.get('stocks'))))
+  )((stocks))
 }
 
 
 // Stock chart of a symbol e.g. AAPL
 const chart = async () => {
+    const [hist, qt] = await Promise.all([getHist(), getQuote(commander.chart)])
     const chart = pipe(
       map(identity),
       tail,
@@ -157,14 +159,14 @@ const chart = async () => {
       interpolateArray(width),
       compact,
       x => asciichart.plot(x, {height: height}),
-    )(await getHist())
-    const q = map('quote')(await getQuote(commander.chart))[0]
+    )(hist)
+    const q = map('quote')(qt)[0]
     console.log(chart)
     console.log(" ".repeat(15)+(q.companyName + " " + range +
-    " chart. Latest Price: $" + q.latestPrice + ". MktCap: " +
+    " chart. Latest Price: $" + q.latestPrice + " | MktCap: " +
     humanString(q.marketCap)))
 }
 
 // Main function / Entrypoint
-const main = async () => commander.chart ?  chart() : quotes()
+const main = async () => commander.chart ? chart() : quotes()
 main()
