@@ -11,10 +11,10 @@ const { IEXCloudClient }                    = require('node-iex-cloud')
 const { cnbcMarket }                        = require('cnbc-market')
 const { cnnMarket }                         = require('cnn-market')
 const { identity, values, defaultTo, pipe } = require('lodash/fp')
-const { interpolateArray }                  = require('array-interpolatejs')
-const { lookup, history }                   = require('yahoo-stocks')
 const { tail, forEach, flatMap, map, find } = require('lodash/fp')
 const { compact }                           = require('lodash/fp')
+const { interpolateArray }                  = require('array-interpolatejs')
+const { lookup, history }                   = require('yahoo-stocks')
 const { toHumanString }                     = require('human-readable-numbers')
 
 const validRange = ['1m', '5m', '10m', '15m', '20m', '30m', '40m', '50m',
@@ -54,23 +54,18 @@ const interval = () => {
   return "1m"
 }
 
+// Error Handlers
+const errorHandler = i => {
+    console.log(chalk.red("Error. Could not find symbol: " + commander.chart))
+    process.exit(1)
+}
+
 // Helper Functions
-const getQuote = async i => {
-  try {
-      return await iex.symbols(i).batch('quote')
-  } catch (e) {
-      console.log(chalk.red("Error. Could not find symbol: " + commander.chart))
-      process.exit(1)
-  }
-}
-const getHist = async () => {
-  try {
-      return await history(commander.chart, { interval: interval(), range: range })
-  } catch (e) {
-      console.log(chalk.red("Error. Could not find symbol: " + commander.chart))
-      process.exit(1)
-  }
-}
+const getQuote = async i => await iex.symbols(i).batch('quote')
+    .catch(errorHandler)
+const getHist = async () =>
+  await history(commander.chart, { interval: interval(), range: range })
+    .catch(errorHandler)
 const plusSign    = i => i > 0 ? '+' + i : i
 const pad         = i => i.toString().padStart(COL_PAD)
 const tablePad    = i => i.padEnd(COL_PAD)
