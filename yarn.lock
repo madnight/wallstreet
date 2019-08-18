@@ -396,7 +396,7 @@ cnbc-market@../cnbc-market:
     axios "^0.19.0"
     lodash "^4.17.15"
 
-cnn-market@^1.0.3:
+cnn-market@^1.0.0:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/cnn-market/-/cnn-market-1.0.3.tgz#c09c143d5cf7628e6267f54ce4f4ee2ceb230b7b"
   integrity sha512-8ey5qw3lHWH1LeKBwdJUVx4f6AQQIWQTJbXQL7OUi+r1eG4mK50b7ljYGP9DBZY1vwkaGzOz7qqaRqkQT0gYDg==

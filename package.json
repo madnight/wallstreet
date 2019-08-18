@@ -16,7 +16,7 @@
     "axios": "^0.19.0",
     "chalk": "^2.4.2",
     "cnbc-market": "../cnbc-market",
-    "cnn-market": "^1.0.3",
+    "cnn-market": "^1.0.0",
     "commander": "^3.0.0",
     "configstore": "^5.0.0",
     "human-readable-numbers": "^0.9.5",
