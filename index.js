@@ -1,9 +1,11 @@
+#!/usr/bin/env node
+
 const asciichart                    = require('asciichart')
 const chalk                         = require('chalk')
 const commander                     = require('commander')
 const Configstore                   = require('configstore')
 const fetch                         = require('node-fetch')
-const fs                            = require('fs')
+const watchlist                     = require('./watchlist.json')
 const { interpolateArray }          = require('array-interpolatejs')
 const { cnnMarket }                 = require('cnn-market')
 const { toHumanString }             = require('human-readable-numbers')
@@ -64,9 +66,8 @@ const percentage   = i => (i * 100).toFixed(2) + '%'
 const humanString  = i => i ? toHumanString(i).replace('G','B') : null
 const [red, green] = [pipe(pad, chalk.red), pipe(pad, chalk.green)]
 
-const config = new Configstore('stock-chart-cli',
-    JSON.parse( fs.readFileSync('watchlist.json'))
-)
+const config = new Configstore('wallstreet', watchlist)
+
 const colNames = [('Symbol').padEnd(COL_PAD)].concat(
     ['Price', 'Change', 'Change%', 'AvgVolume', 'P/E',
         'MktCap', 'Week52Low', 'Week52High', 'YTDChange']
