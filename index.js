@@ -74,7 +74,7 @@ const colNames = [('Symbol').padEnd(COL_PAD)].concat(
 )
 const tableHead = (name, pad, symbol, chg, chgPcnt) =>
     process.stdout.write(chalk.bold(name.padEnd(pad)) + symbol.padStart(10)
-    + (chgPcnt ? (' [' + chg + '|' + chgPcnt + ']').padStart(18).padEnd(22)
+    + (chgPcnt ? (' [' + chg + '|' + chgPcnt + ']').padStart(17).padEnd(22)
         : (' [' + chg + ']').padStart(9).padEnd(11))
     )
 const interval = () => {
@@ -114,8 +114,13 @@ const quotes = async () => {
         f('S&P500'), f('London'),   f('Oil'),
         f('NASDAQ'), f('Germany'),  f('Yield10y'),
     ].map( (x, i) =>
-        tableHead((i % 3 == 0 ? '\n' : '') +
-      x.symbol, COL_PAD, x.value, x.change, x.changePcnt)
+        tableHead(
+            (i % 3 == 0 ? '\n' : '') + x.symbol,
+            COL_PAD,
+            x.value.length > 7 ? x.value.slice(0,-3) : x.value,
+            x.change,
+            x.changePcnt
+        )
     )
     console.log('\n\n'+ map(pad, colNames).join('  '))
     console.log('-'.repeat(DELIM_LEN))
