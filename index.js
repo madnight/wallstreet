@@ -61,8 +61,8 @@ const getHist = async () =>
 // Helper Functions
 const plusSign     = i => i > 0 ? '+' + i : i
 const pad          = i => (i ? i : '').toString().padStart(COL_PAD)
-const dollar       = i => '$' + i.toFixed(2)
-const percentage   = i => (i * 100).toFixed(2) + '%'
+const dollar       = i => i ? '$' + i.toFixed(2) : ''
+const percentage   = i => i ? (i * 100).toFixed(2) + '%' : ''
 const humanString  = i => i ? toHumanString(i).replace('G','B') : null
 const [red, green] = [pipe(pad, chalk.red), pipe(pad, chalk.green)]
 
