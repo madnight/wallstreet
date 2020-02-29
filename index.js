@@ -35,6 +35,8 @@ const validRange = [
     "2d",
     "5d",
     "1mo",
+    "3mo",
+    "6mo",
     "1y",
     "5y",
     "10y"
@@ -118,7 +120,7 @@ const tableHead = (name, pad, symbol, chg, chgPcnt) =>
                 : (" [" + chg + "]").padStart(9).padEnd(11))
     );
 const interval = () => {
-    if (["1mo", "1y", "5y", "10y"].includes(range)) return "1d";
+    if (["1mo", "3mo", "6mo", "1y", "5y", "10y"].includes(range)) return "1d";
     if (["8h", "1d", "2d", "5d"].includes(range)) return "1h";
     return "1m";
 };
