@@ -1,14 +1,14 @@
 {
   "files": {
     "main.css": "/wallstreet/static/css/main.5ecd60fb.chunk.css",
-    "main.js": "/wallstreet/static/js/main.554944c4.chunk.js",
-    "main.js.map": "/wallstreet/static/js/main.554944c4.chunk.js.map",
+    "main.js": "/wallstreet/static/js/main.e432b6cf.chunk.js",
+    "main.js.map": "/wallstreet/static/js/main.e432b6cf.chunk.js.map",
     "runtime-main.js": "/wallstreet/static/js/runtime-main.d0358ffe.js",
     "runtime-main.js.map": "/wallstreet/static/js/runtime-main.d0358ffe.js.map",
     "static/js/2.1cbaadaf.chunk.js": "/wallstreet/static/js/2.1cbaadaf.chunk.js",
     "static/js/2.1cbaadaf.chunk.js.map": "/wallstreet/static/js/2.1cbaadaf.chunk.js.map",
     "index.html": "/wallstreet/index.html",
-    "precache-manifest.b8e084dc4ce105ca36286ab53e5b3c4b.js": "/wallstreet/precache-manifest.b8e084dc4ce105ca36286ab53e5b3c4b.js",
+    "precache-manifest.7e9b00dade0dcccb29a6e5fbe13a5c04.js": "/wallstreet/precache-manifest.7e9b00dade0dcccb29a6e5fbe13a5c04.js",
     "service-worker.js": "/wallstreet/service-worker.js",
     "static/css/main.5ecd60fb.chunk.css.map": "/wallstreet/static/css/main.5ecd60fb.chunk.css.map",
     "static/js/2.1cbaadaf.chunk.js.LICENSE.txt": "/wallstreet/static/js/2.1cbaadaf.chunk.js.LICENSE.txt"
@@ -17,6 +17,6 @@
     "static/js/runtime-main.d0358ffe.js",
     "static/js/2.1cbaadaf.chunk.js",
     "static/css/main.5ecd60fb.chunk.css",
-    "static/js/main.554944c4.chunk.js"
+    "static/js/main.e432b6cf.chunk.js"
   ]
 }
