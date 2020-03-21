@@ -28,9 +28,9 @@ class Select extends Component<*, State> {
         const symbols = (
             await axios.get("https://finance.beuke.org/symbols")
         ).data.map(i => ({ value: i, label: i }));
-        this.setState({ symbols });
+        this.setState({ symbols: symbols });
 
-        const path = this.props.history.location.hash.replace("#", "");
+        const path = this.props.location.pathname;
 
         const result = path.slice(1)
             ? path
@@ -44,20 +44,13 @@ class Select extends Component<*, State> {
         });
     }
 
-    handleInputChange = (newValue: string) => {
-        if (newValue.length < 1) return false;
-        const inputValue = newValue.replace(/\W/g, "");
-        this.setState({ inputValue });
-        return inputValue;
-    };
-
     textChange = inputValue => {
         this.setState({ techFilter: inputValue });
-        this.props.history.push(
-            inputValue
-                ? "/wallstreet/#/" + inputValue.map(x => x.value).toString()
-                : ""
-        );
+        const path = inputValue ? inputValue.map(x => x.value).toString() : "";
+        this.props.history.push(path);
+        if (inputValue) {
+            this.props.handler(inputValue.map(x => x.value));
+        }
     };
 
     render() {
