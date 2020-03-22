@@ -7,8 +7,6 @@
         "@testing-library/jest-dom": "^4.2.4",
         "@testing-library/react": "^9.3.2",
         "@testing-library/user-event": "^7.1.2",
-        "@welldone-software/why-did-you-render": "^4.0.5",
-        "axios": "^0.19.2",
         "human-readable-numbers": "^0.9.5",
         "jsfmt": "^0.5.3",
         "react": "^16.12.0",

@@ -1,18 +1,7 @@
 import React, { useState, useEffect } from "react";
-import styled from "styled-components";
-import { toHumanString } from "human-readable-numbers";
-import { withRouter, useHistory } from "react-router-dom";
+import { withRouter } from "react-router-dom";
 import Select from "./Select";
-
-import { useParams } from "react-router-dom";
-
 import Table from "./Table";
-
-const whyDidYouRender = require("@welldone-software/why-did-you-render");
-
-whyDidYouRender(React, {
-    trackAllPureComponents: true
-});
 
 function App(props) {
     const [result, setResult] = useState([]);
@@ -24,14 +13,32 @@ function App(props) {
         }
 
         const production = true;
+        const getAllUrls = async urls => {
+            try {
+                var data = await Promise.all(
+                    urls.map(url =>
+                        fetch(url).then(response => response.json())
+                    )
+                );
 
-        const yahoo = await fetch(
-            production
-                ? `https://finance.beuke.org/chart/batch/${array.toString()}`
-                : `https://localhost:3000/chart/batch/${array.toString()}`
-        );
+                return data;
+            } catch (error) {
+                console.log(error);
 
-        const abc = (await yahoo.json()).map(x => {
+                throw error;
+            }
+        };
+
+        const API = production
+            ? "https://finance.beuke.org"
+            : "http://localhost:3000";
+
+        const responses = await getAllUrls([
+            API + `/chart/batch/${array.toString()}`,
+            API + `/quote/batch/${array.toString()}`
+        ]);
+
+        const yahooResult = responses[0].map(x => {
             const len = x.quote.length;
             const q = x.quote;
             return {
@@ -41,16 +48,9 @@ function App(props) {
             };
         });
 
-        const response = await fetch(
-            production
-                ? `https://finance.beuke.org/quote/batch/${array.toString()}`
-                : `http://localhost:3000/quote/batch/${array.toString()}`
-        );
-
-        const json = await response.json();
         setResult(
-            json.map(x => {
-                const hit = abc.filter(y => y.symbol === x.symbol)[0];
+            responses[1].map(x => {
+                const hit = yahooResult.filter(y => y.symbol === x.symbol)[0];
 
                 const toPerf = x => y =>
                     y ? ((x / y) * 100).toFixed(0) + "%" : "-";
@@ -62,7 +62,6 @@ function App(props) {
                         ? toPerf(x.price)(hit.fiveYearsPerf)
                         : "-",
                     changePercent: x.change,
-                    change: "asd",
                     week52Low: 0,
                     week52High: 0,
                     changeDiff: (x.price - x.prevClose).toFixed(2).toString(),

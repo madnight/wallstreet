@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import styled from "styled-components";
 import { useTable, useFlexLayout, useSortBy } from "react-table";
 import { toHumanString } from "human-readable-numbers";
-import { withRouter, useHistory } from "react-router-dom";
-import Select from "./Select";
+import { withRouter } from "react-router-dom";
 
 const Styles = styled.div`
     margin-left: 2%;
