@@ -4,6 +4,13 @@ object-assign
 @license MIT
 */
 
+/*!
+ * Determine if an object is a Buffer
+ *
+ * @author   Feross Aboukhadijeh <https://feross.org>
+ * @license  MIT
+ */
+
 /*! Human readable numbers - v0.9 - 2018; Licensed MIT */
 
 /** @license React v0.18.0
