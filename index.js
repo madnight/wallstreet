@@ -67,11 +67,6 @@ if (!validRange.includes(range)) {
     process.exit(1);
 }
 
-// Quotes API
-const iex = new IEXCloudClient(fetch, {
-    publishable: "pk_64fdeb84e42e4d239b3e87ab58d76e09"
-});
-
 // Error Handlers
 const errorHandler = () => {
     console.log(chalk.red("Error. Could not find symbol: " + commander.chart));
@@ -79,11 +74,11 @@ const errorHandler = () => {
 };
 
 // API Data Functions
-const getQuote = async i =>
-    await iex
-        .symbols(i)
-        .batch("quote")
-        .catch(errorHandler);
+const getQuote = async stocks => {
+    const res = await fetch("https://finance.beuke.org/quote/batch/" + stocks)
+         .catch(errorHandler);
+    return await res.json();
+}
 const getHist = async () =>
     await history(commander.chart, {
         interval: interval(),
@@ -93,7 +88,7 @@ const getHist = async () =>
 // Helper Functions
 const plusSign = i => (i > 0 ? "+" + i : i);
 const pad = i => (i ? i : "").toString().padStart(COL_PAD);
-const dollar = i => (i ? "$" + i.toFixed(2) : "");
+const dollar = i => (i ? "$" + i : "");
 const percentage = i => (i ? (i * 100).toFixed(2) + "%" : "");
 const humanString = i => (i ? toHumanString(i).replace("G", "B") : null);
 const [red, green] = [pipe(pad, chalk.red), pipe(pad, chalk.green)];
@@ -104,7 +99,7 @@ const colNames = ["Symbol".padEnd(COL_PAD)].concat([
     "Price",
     "Change",
     "Change%",
-    "AvgVolume",
+    "Short",
     "P/E",
     "MktCap",
     "Week52Low",
@@ -131,6 +126,7 @@ const zebra = x =>
 
 // Colors
 const percentColor = i => (i.includes("-") ? red(i) : green(i));
+const shortColor = i => i.length > 5 ? red(i) : i;
 const numColor = i => (i < 0 ? red(i) : green(i));
 const peColor = i => {
     switch (true) {
@@ -145,6 +141,8 @@ const peColor = i => {
 
 const symColor = price => symbol =>
     chalk.bold(price < 0 ? red(symbol) : green(symbol));
+
+const humanStr = i => (i ? toHumanString(i).replace("G", "B") : null);
 
 // Table of market data and quotes from watchlist
 const quotes = async () => {
@@ -176,21 +174,23 @@ const quotes = async () => {
         )
     );
     console.log("\n\n" + map(pad, colNames).join("  "));
+
+
     console.log("-".repeat(DELIM_LEN));
     pipe(
-        map("quote"),
         map(q => [
             // Parse API data in human readable format
             symColor(q.change)(q.symbol.padEnd(COL_PAD)),
-            dollar(q.latestPrice),
-            numColor(plusSign(q.change ? q.change.toFixed(2) : null)),
-            percentColor(percentage(plusSign(q.changePercent))),
-            humanString(q.avgTotalVolume),
-            peColor(defaultTo("")(q.peRatio ? q.peRatio.toFixed(1) : null)),
-            humanString(q.marketCap),
-            dollar(q.week52Low),
-            dollar(q.week52High),
-            percentColor(plusSign(percentage(q.ytdChange)))
+            dollar(q.price),
+            // numColor(plusSign(q.change ? q.change : null)),
+            percentColor((q.price - q.prevClose).toFixed(2)),
+            percentColor(q.change),
+            shortColor(q.shortFloat),
+            peColor(defaultTo("")(q.peRatio ? q.peRatio : null)),
+            q.cap.replace(/\.\d\d/i, ""),
+            dollar(q.fiftyTwoWeekRange.replace(/\s.+/i, "")),
+            dollar(q.fiftyTwoWeekRange.replace(/\d+.\d+\s-\s/i, "")),
+            percentColor(plusSign(q.perfYTD))
         ]),
         map(map(defaultTo(""))),
         map(map(pad)),
