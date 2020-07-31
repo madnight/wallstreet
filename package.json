@@ -1,6 +1,6 @@
 {
     "name": "wallstreet",
-    "version": "1.1.5",
+    "version": "2.0.0",
     "description": "Stock quotes and charts for the terminal",
     "main": "index.js",
     "scripts": {
