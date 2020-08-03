@@ -14,6 +14,7 @@ const { tail, forEach, flatMap } = require("lodash/fp");
 const { compact, find, map, join } = require("lodash/fp");
 const { IEXCloudClient } = require("node-iex-cloud");
 const { history } = require("yahoo-stocks");
+const { version } = require('./package.json');
 
 // Constants
 const { COL_PAD, DELIM_LEN } = { COL_PAD: 9, DELIM_LEN: 109 };
@@ -49,6 +50,7 @@ commander
     .option("-h , --height <int>", "Height of the chart")
     .option("-z , --zebra", "Visual even-odd zebra-striped table mode")
     .option("-w , --width <int>", "Width of the chart")
+    .version(version)
     .parse(process.argv);
 
 const range = defaultTo("5y")(commander.range);
