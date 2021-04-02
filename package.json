@@ -17,7 +17,7 @@
         "alphavantage": "^1.2.5",
         "array-interpolatejs": "^1.0.2",
         "asciichart": "^1.5.9",
-        "axios": "^0.19.0",
+        "axios": "^0.21.1",
         "chalk": "^2.4.2",
         "cnn-market": "^1.0.4",
         "commander": "^3.0.0",
