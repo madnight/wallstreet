@@ -14,18 +14,16 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "alphavantage": "^1.2.5",
         "array-interpolatejs": "^1.0.2",
         "asciichart": "^1.5.9",
         "axios": "^0.21.1",
-        "chalk": "^2.4.2",
+        "chalk": "^4.1.0",
         "cnn-market": "^1.0.4",
         "commander": "^3.0.0",
         "configstore": "^5.0.0",
         "human-readable-numbers": "^0.9.5",
         "lodash": "^4.17.15",
         "node-fetch": "^2.6.0",
-        "node-iex-cloud": "^0.0.4",
         "yahoo-stocks": "^2.0.4"
     },
     "devDependencies": {

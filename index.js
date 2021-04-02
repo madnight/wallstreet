@@ -12,7 +12,6 @@ const { toHumanString } = require("human-readable-numbers");
 const { identity, defaultTo, pipe } = require("lodash/fp");
 const { tail, forEach, flatMap } = require("lodash/fp");
 const { compact, find, map, join } = require("lodash/fp");
-const { IEXCloudClient } = require("node-iex-cloud");
 const { history } = require("yahoo-stocks");
 const { version } = require('./package.json');
 
