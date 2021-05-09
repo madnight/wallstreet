@@ -13,7 +13,7 @@ const { identity, defaultTo, pipe } = require("lodash/fp");
 const { tail, forEach, flatMap } = require("lodash/fp");
 const { compact, find, map, join } = require("lodash/fp");
 const { history } = require("yahoo-stocks");
-const { version } = require('./package.json');
+const { version } = require("./package.json");
 
 // Constants
 const { COL_PAD, DELIM_LEN } = { COL_PAD: 9, DELIM_LEN: 109 };
@@ -39,7 +39,7 @@ const validRange = [
     "6mo",
     "1y",
     "5y",
-    "10y"
+    "10y",
 ];
 
 // Comand Line Parsing
@@ -75,23 +75,23 @@ const errorHandler = () => {
 };
 
 // API Data Functions
-const getQuote = async stocks => {
-    const res = await fetch("https://finance.beuke.org/quote/batch/" + stocks)
-         .catch(errorHandler);
+const getQuote = async (stocks) => {
+    const res = await fetch(
+        "https://finance.beuke.org/quote/batch/" + stocks
+    ).catch(errorHandler);
     return await res.json();
-}
+};
 const getHist = async () =>
     await history(commander.chart, {
         interval: interval(),
-        range: range
+        range: range,
     }).catch(errorHandler);
 
 // Helper Functions
-const plusSign = i => (i > 0 ? "+" + i : i);
-const pad = i => (i ? i : "").toString().padStart(COL_PAD);
-const dollar = i => (i ? "$" + i : "");
-const percentage = i => (i ? (i * 100).toFixed(2) + "%" : "");
-const humanString = i => (i ? toHumanString(i).replace("G", "B") : null);
+const plusSign = (i) => (i > 0 ? "+" + i : i);
+const pad = (i) => (i ? i : "").toString().padStart(COL_PAD);
+const dollar = (i) => (i ? "$" + i : "");
+const humanString = (i) => (i ? toHumanString(i).replace("G", "B") : null);
 const [red, green] = [pipe(pad, chalk.red), pipe(pad, chalk.green)];
 
 const config = new Configstore("wallstreet", watchlist);
@@ -105,7 +105,7 @@ const colNames = ["Symbol".padEnd(COL_PAD)].concat([
     "MktCap",
     "Week52Low",
     "Week52High",
-    "YTDChange"
+    "YTDChange",
 ]);
 const tableHead = (name, pad, symbol, chg, chgPcnt) =>
     process.stdout.write(
@@ -120,16 +120,15 @@ const interval = () => {
     if (["8h", "1d", "2d", "5d"].includes(range)) return "1h";
     return "1m";
 };
-const zebra = x =>
+const zebra = (x) =>
     commander.zebra
         ? x.map((y, i) => (i % 2 ? map(pipe(chalk.bold, chalk.dim))(y) : y))
         : x;
 
 // Colors
-const percentColor = i => (i.includes("-") ? red(i) : green(i));
-const shortColor = i => i.length > 5 ? red(i) : i;
-const numColor = i => (i < 0 ? red(i) : green(i));
-const peColor = i => {
+const percentColor = (i) => (i.includes("-") ? red(i) : green(i));
+const shortColor = (i) => (i.length > 5 ? red(i) : i);
+const peColor = (i) => {
     switch (true) {
         case i < 0 || i > 40:
             return red(i);
@@ -140,20 +139,18 @@ const peColor = i => {
     }
 };
 
-const symColor = price => symbol =>
+const symColor = (price) => (symbol) =>
     chalk.bold(price < 0 ? red(symbol) : green(symbol));
-
-const humanStr = i => (i ? toHumanString(i).replace("G", "B") : null);
 
 // Table of market data and quotes from watchlist
 const quotes = async () => {
     const [marketData, stocks] = await Promise.all([
         cnnMarket(),
-        getQuote(config.get("stocks"))
+        getQuote(config.get("stocks")),
     ]);
 
     // Print market table header
-    const f = i => find({ symbol: i }, marketData);
+    const f = (i) => find({ symbol: i }, marketData);
     _ = [
         // eslint-disable-line no-undef
         f("DOW"),
@@ -164,7 +161,7 @@ const quotes = async () => {
         f("Oil"),
         f("NASDAQ"),
         f("Germany"),
-        f("Yield10y")
+        f("Yield10y"),
     ].map((x, i) =>
         tableHead(
             (i % 3 == 0 ? "\n" : "") + x.symbol,
@@ -176,10 +173,9 @@ const quotes = async () => {
     );
     console.log("\n\n" + map(pad, colNames).join("  "));
 
-
     console.log("-".repeat(DELIM_LEN));
     pipe(
-        map(q => [
+        map((q) => [
             // Parse API data in human readable format
             symColor(q.change)(q.symbol.padEnd(COL_PAD)),
             dollar(q.price),
@@ -191,7 +187,7 @@ const quotes = async () => {
             q.cap.replace(/\.\d\d/i, ""),
             dollar(q.fiftyTwoWeekRange.replace(/\s.+/i, "")),
             dollar(q.fiftyTwoWeekRange.replace(/\d+.\d+\s-\s/i, "")),
-            percentColor(plusSign(q.perfYTD))
+            percentColor(plusSign(q.perfYTD)),
         ]),
         map(map(defaultTo(""))),
         map(map(pad)),
@@ -205,7 +201,7 @@ const quotes = async () => {
 const chart = async () => {
     const [hist, qt] = await Promise.all([
         getHist(),
-        getQuote(commander.chart)
+        getQuote(commander.chart),
     ]);
     const chart = pipe(
         map(identity),
@@ -213,7 +209,7 @@ const chart = async () => {
         flatMap(map("close")),
         interpolateArray(width),
         compact,
-        x => asciichart.plot(x, { height: height })
+        (x) => asciichart.plot(x, { height: height })
     )(hist);
     const q = map("quote")(qt)[0];
     console.log(chart);
