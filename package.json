@@ -3,6 +3,7 @@
     "version": "2.0.2",
     "description": "Stock quotes and charts for the terminal",
     "main": "index.js",
+    "type": "module",
     "scripts": {
         "start": "node index.js",
         "watch": "nodemon index.js",
@@ -19,8 +20,8 @@
         "axios": "^0.21.1",
         "chalk": "^4.1.0",
         "cnn-market": "^1.0.4",
-        "commander": "^3.0.0",
-        "configstore": "^5.0.0",
+        "commander": "^7.2.0",
+        "configstore": "^6.0.0",
         "human-readable-numbers": "^0.9.5",
         "lodash": "^4.17.15",
         "node-fetch": "^2.6.0",

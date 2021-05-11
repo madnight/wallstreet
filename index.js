@@ -1,19 +1,20 @@
 #!/usr/bin/env node
 
-const asciichart = require("asciichart");
-const chalk = require("chalk");
-const commander = require("commander");
-const Configstore = require("configstore");
-const fetch = require("node-fetch");
-const watchlist = require("./watchlist.json");
-const { interpolateArray } = require("array-interpolatejs");
-const { cnnMarket } = require("cnn-market");
-const { toHumanString } = require("human-readable-numbers");
-const { identity, defaultTo, pipe } = require("lodash/fp");
-const { tail, forEach, flatMap } = require("lodash/fp");
-const { compact, find, map, join } = require("lodash/fp");
-const { history } = require("yahoo-stocks");
-const { version } = require("./package.json");
+import asciichart from "asciichart";
+import chalk from "chalk";
+import commander from "commander";
+import Configstore from "configstore";
+import fetch from "node-fetch";
+import { interpolateArray } from "array-interpolatejs";
+import { cnnMarket } from "cnn-market";
+import * as fs from "fs";
+import humanReadableNumbers from "human-readable-numbers";
+import yahoo from "yahoo-stocks";
+import lodash from "lodash/fp.js";
+import _ from "lodash/fp.js";
+
+const { toHumanString } = humanReadableNumbers;
+const { version } = JSON.parse(fs.readFileSync("./package.json", "utf8"));
 
 // Constants
 const { COL_PAD, DELIM_LEN } = { COL_PAD: 9, DELIM_LEN: 109 };
@@ -43,7 +44,8 @@ const validRange = [
 ];
 
 // Comand Line Parsing
-commander
+const program = new commander.Command()
+program
     .option("-c , --chart <string>", "chart for stock symbol e.g. MSFT")
     .option("-r , --range <string>", validRange.join(" "))
     .option("-h , --height <int>", "Height of the chart")
@@ -52,9 +54,11 @@ commander
     .version(version)
     .parse(process.argv);
 
-const range = defaultTo("5y")(commander.range);
-const height = defaultTo(14)(parseInt(commander.height));
-const width = defaultTo(80)(parseInt(commander.width));
+const param = program.opts();
+
+const range = _.defaultTo("5y")(param.range);
+const height = _.defaultTo(14)(parseInt(param.height));
+const width = _.defaultTo(80)(parseInt(param.width));
 
 // Comand Line Validation
 if (!validRange.includes(range)) {
@@ -70,7 +74,7 @@ if (!validRange.includes(range)) {
 
 // Error Handlers
 const errorHandler = () => {
-    console.log(chalk.red("Error. Could not find symbol: " + commander.chart));
+    console.log(chalk.red("Error. Could not find symbol: " + param.chart));
     process.exit(1);
 };
 
@@ -82,7 +86,7 @@ const getQuote = async (stocks) => {
     return await res.json();
 };
 const getHist = async () =>
-    await history(commander.chart, {
+    await yahoo.history(param.chart, {
         interval: interval(),
         range: range,
     }).catch(errorHandler);
@@ -92,8 +96,9 @@ const plusSign = (i) => (i > 0 ? "+" + i : i);
 const pad = (i) => (i ? i : "").toString().padStart(COL_PAD);
 const dollar = (i) => (i ? "$" + i : "");
 const humanString = (i) => (i ? toHumanString(i).replace("G", "B") : null);
-const [red, green] = [pipe(pad, chalk.red), pipe(pad, chalk.green)];
+const [red, green] = [_.pipe(pad, chalk.red), _.pipe(pad, chalk.green)];
 
+const watchlist = JSON.parse(fs.readFileSync("./watchlist.json", "utf8"));
 const config = new Configstore("wallstreet", watchlist);
 
 const colNames = ["Symbol".padEnd(COL_PAD)].concat([
@@ -121,8 +126,8 @@ const interval = () => {
     return "1m";
 };
 const zebra = (x) =>
-    commander.zebra
-        ? x.map((y, i) => (i % 2 ? map(pipe(chalk.bold, chalk.dim))(y) : y))
+    param.zebra
+        ? x.map((y, i) => (i % 2 ? _.map(_.pipe(chalk.bold, chalk.dim))(y) : y))
         : x;
 
 // Colors
@@ -150,8 +155,8 @@ const quotes = async () => {
     ]);
 
     // Print market table header
-    const f = (i) => find({ symbol: i }, marketData);
-    _ = [
+    const f = (i) => _.find({ symbol: i }, marketData);
+    const x = [
         // eslint-disable-line no-undef
         f("DOW"),
         f("HongKong"),
@@ -171,11 +176,11 @@ const quotes = async () => {
             x.changePcnt
         )
     );
-    console.log("\n\n" + map(pad, colNames).join("  "));
+    console.log("\n\n" + _.map(pad, colNames).join("  "));
 
     console.log("-".repeat(DELIM_LEN));
-    pipe(
-        map((q) => [
+    _.pipe(
+        _.map((q) => [
             // Parse API data in human readable format
             symColor(q.change)(q.symbol.padEnd(COL_PAD)),
             dollar(q.price),
@@ -183,17 +188,17 @@ const quotes = async () => {
             percentColor((q.price - q.prevClose).toFixed(2)),
             percentColor(q.change),
             shortColor(q.shortFloat),
-            peColor(defaultTo("")(q.peRatio ? q.peRatio : null)),
+            peColor(_.defaultTo("")(q.peRatio ? q.peRatio : null)),
             q.cap.replace(/\.\d\d/i, ""),
             dollar(q.fiftyTwoWeekRange.replace(/\s.+/i, "")),
             dollar(q.fiftyTwoWeekRange.replace(/\d+.\d+\s-\s/i, "")),
             percentColor(plusSign(q.perfYTD)),
         ]),
-        map(map(defaultTo(""))),
-        map(map(pad)),
+        _.map(_.map(_.defaultTo(""))),
+        _.map(_.map(pad)),
         zebra,
-        map(join("  ")),
-        forEach(console.log)
+        _.map(_.join("  ")),
+        _.forEach(console.log)
     )(stocks);
 };
 
@@ -201,30 +206,30 @@ const quotes = async () => {
 const chart = async () => {
     const [hist, qt] = await Promise.all([
         getHist(),
-        getQuote(commander.chart),
+        getQuote(param.chart),
     ]);
-    const chart = pipe(
-        map(identity),
-        tail,
-        flatMap(map("close")),
+    const chart = _.pipe(
+        _.map(_.identity),
+        _.tail,
+        _.flatMap(_.map("close")),
         interpolateArray(width),
-        compact,
+        _.compact,
         (x) => asciichart.plot(x, { height: height })
     )(hist);
-    const q = map("quote")(qt)[0];
+    const q = qt[0];
     console.log(chart);
     console.log(
         " ".repeat(15) +
-            (q.companyName +
+            (q.symbol +
                 " " +
                 range +
                 " chart. Latest Price: $" +
-                q.latestPrice +
+                q.price +
                 " | MktCap: " +
-                humanString(q.marketCap))
+                q.cap)
     );
 };
 
 // Main function / Entrypoint
-const main = async () => (commander.chart ? chart() : quotes());
+const main = async () => (param.chart ? chart() : quotes());
 main();
