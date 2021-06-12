@@ -6,8 +6,6 @@ Stock quotes and charts for the terminal
 <a href="https://opensource.org/licenses/MIT"><img height="20" src="https://img.shields.io/badge/License-MIT-brightgreen.svg" alt="License: MIT" /></a>
 <a href="https://github.com/madnight/wallstreet/actions/workflows/CI.yml"><img src="https://img.shields.io/github/workflow/status/madnight/wallstreet/CI" alt="Build Status" /></a>
 <a href="https://codeclimate.com/github/madnight/wallstreet/issues"><img height="20" src="https://codeclimate.com/github/madnight/wallstreet/badges/issue_count.svg?maxAge=2592000" alt="Issue Count" /></a>
-<a href="https://snyk.io/test/github/madnight/wallstreet"><img height="20" src="https://images.weserv.nl/?url=https://img.shields.io/snyk/vulnerabilities/github/madnight/wallstreet?cacheSeconds=3600&l=0&output=png&w=1000" alt="Known Vulnerabilities"></a>
-<a href="https://david-dm.org/madnight/wallstreet"><img height="20" src="https://img.shields.io/david/madnight/wallstreet?cacheSeconds=3600" alt="dependencies Status" /></a>
  <br> <br>
 
 ![image](https://user-images.githubusercontent.com/10064471/63653846-91edf100-c772-11e9-883e-96761e295766.png)
