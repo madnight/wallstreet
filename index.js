@@ -1,23 +1,29 @@
 #!/usr/bin/env node
 
-import asciichart from "asciichart";
-import chalk from "chalk";
-import commander from "commander";
-import Configstore from "configstore";
-import fetch from "node-fetch";
-import { interpolateArray } from "array-interpolatejs";
-import { cnnMarket } from "cnn-market";
-import * as fs from "fs";
-import humanReadableNumbers from "human-readable-numbers";
-import yahoo from "yahoo-stocks";
-import lodash from "lodash/fp.js";
-import _ from "lodash/fp.js";
+import asciichart from "asciichart"
+import chalk from "chalk"
+import commander from "commander"
+import Configstore from "configstore"
+import fetch from "node-fetch"
+import { interpolateArray } from "array-interpolatejs"
+import { cnnMarket } from "cnn-market"
+import * as fs from "fs"
+import humanReadableNumbers from "human-readable-numbers"
+import yahoo from "yahoo-stocks"
+import lodash from "lodash/fp.js"
+import _ from "lodash/fp.js"
+import path from "path"
+import { dirname } from "path"
+import { fileURLToPath } from "url"
 
-const { toHumanString } = humanReadableNumbers;
-const { version } = JSON.parse(fs.readFileSync("./package.json", "utf8"));
+const { toHumanString } = humanReadableNumbers
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const { version } = JSON.parse(
+    fs.readFileSync(path.resolve(__dirname, "package.json"), "utf8")
+)
 
 // Constants
-const { COL_PAD, DELIM_LEN } = { COL_PAD: 9, DELIM_LEN: 109 };
+const { COL_PAD, DELIM_LEN } = { COL_PAD: 9, DELIM_LEN: 109 }
 const validRange = [
     "1m",
     "5m",
@@ -41,7 +47,7 @@ const validRange = [
     "1y",
     "5y",
     "10y",
-];
+]
 
 // Comand Line Parsing
 const program = new commander.Command()
@@ -52,13 +58,13 @@ program
     .option("-z , --zebra", "Visual even-odd zebra-striped table mode")
     .option("-w , --width <int>", "Width of the chart")
     .version(version)
-    .parse(process.argv);
+    .parse(process.argv)
 
-const param = program.opts();
+const param = program.opts()
 
-const range = _.defaultTo("5y")(param.range);
-const height = _.defaultTo(14)(parseInt(param.height));
-const width = _.defaultTo(80)(parseInt(param.width));
+const range = _.defaultTo("5y")(param.range)
+const height = _.defaultTo(14)(parseInt(param.height))
+const width = _.defaultTo(80)(parseInt(param.width))
 
 // Comand Line Validation
 if (!validRange.includes(range)) {
@@ -68,38 +74,42 @@ if (!validRange.includes(range)) {
                 "Valid values are:\n" +
                 validRange.join(" ")
         )
-    );
-    process.exit(1);
+    )
+    process.exit(1)
 }
 
 // Error Handlers
 const errorHandler = () => {
-    console.log(chalk.red("Error. Could not find symbol: " + param.chart));
-    process.exit(1);
-};
+    console.log(chalk.red("Error. Could not find symbol: " + param.chart))
+    process.exit(1)
+}
 
 // API Data Functions
 const getQuote = async (stocks) => {
     const res = await fetch(
         "https://finance.beuke.org/quote/batch/" + stocks
-    ).catch(errorHandler);
-    return await res.json();
-};
+    ).catch(errorHandler)
+    return await res.json()
+}
 const getHist = async () =>
-    await yahoo.history(param.chart, {
-        interval: interval(),
-        range: range,
-    }).catch(errorHandler);
+    await yahoo
+        .history(param.chart, {
+            interval: interval(),
+            range: range,
+        })
+        .catch(errorHandler)
 
 // Helper Functions
-const plusSign = (i) => (i > 0 ? "+" + i : i);
-const pad = (i) => (i ? i : "").toString().padStart(COL_PAD);
-const dollar = (i) => (i ? "$" + i : "");
-const humanString = (i) => (i ? toHumanString(i).replace("G", "B") : null);
-const [red, green] = [_.pipe(pad, chalk.red), _.pipe(pad, chalk.green)];
+const plusSign = (i) => (i > 0 ? "+" + i : i)
+const pad = (i) => (i ? i : "").toString().padStart(COL_PAD)
+const dollar = (i) => (i ? "$" + i : "")
+const humanString = (i) => (i ? toHumanString(i).replace("G", "B") : null)
+const [red, green] = [_.pipe(pad, chalk.red), _.pipe(pad, chalk.green)]
 
-const watchlist = JSON.parse(fs.readFileSync("./watchlist.json", "utf8"));
-const config = new Configstore("wallstreet", watchlist);
+const watchlist = JSON.parse(
+    fs.readFileSync(path.resolve(__dirname, "watchlist.json"), "utf8")
+)
+const config = new Configstore("wallstreet", watchlist)
 
 const colNames = ["Symbol".padEnd(COL_PAD)].concat([
     "Price",
@@ -111,7 +121,7 @@ const colNames = ["Symbol".padEnd(COL_PAD)].concat([
     "Week52Low",
     "Week52High",
     "YTDChange",
-]);
+])
 const tableHead = (name, pad, symbol, chg, chgPcnt) =>
     process.stdout.write(
         chalk.bold(name.padEnd(pad)) +
@@ -119,43 +129,43 @@ const tableHead = (name, pad, symbol, chg, chgPcnt) =>
             (chgPcnt
                 ? (" [" + chg + "|" + chgPcnt + "]").padStart(17).padEnd(22)
                 : (" [" + chg + "]").padStart(9).padEnd(11))
-    );
+    )
 const interval = () => {
-    if (["1mo", "3mo", "6mo", "1y", "5y", "10y"].includes(range)) return "1d";
-    if (["8h", "1d", "2d", "5d"].includes(range)) return "1h";
-    return "1m";
-};
+    if (["1mo", "3mo", "6mo", "1y", "5y", "10y"].includes(range)) return "1d"
+    if (["8h", "1d", "2d", "5d"].includes(range)) return "1h"
+    return "1m"
+}
 const zebra = (x) =>
     param.zebra
         ? x.map((y, i) => (i % 2 ? _.map(_.pipe(chalk.bold, chalk.dim))(y) : y))
-        : x;
+        : x
 
 // Colors
-const percentColor = (i) => (i.includes("-") ? red(i) : green(i));
-const shortColor = (i) => (i.length > 5 ? red(i) : i);
+const percentColor = (i) => (i.includes("-") ? red(i) : green(i))
+const shortColor = (i) => (i.length > 5 ? red(i) : i)
 const peColor = (i) => {
     switch (true) {
         case i < 0 || i > 40:
-            return red(i);
+            return red(i)
         case i < 10:
-            return green(i);
+            return green(i)
         default:
-            return i;
+            return i
     }
-};
+}
 
 const symColor = (price) => (symbol) =>
-    chalk.bold(price < 0 ? red(symbol) : green(symbol));
+    chalk.bold(price < 0 ? red(symbol) : green(symbol))
 
 // Table of market data and quotes from watchlist
 const quotes = async () => {
     const [marketData, stocks] = await Promise.all([
         cnnMarket(),
         getQuote(config.get("stocks")),
-    ]);
+    ])
 
     // Print market table header
-    const f = (i) => _.find({ symbol: i }, marketData);
+    const f = (i) => _.find({ symbol: i }, marketData)
     const x = [
         // eslint-disable-line no-undef
         f("DOW"),
@@ -175,10 +185,10 @@ const quotes = async () => {
             x.change,
             x.changePcnt
         )
-    );
-    console.log("\n\n" + _.map(pad, colNames).join("  "));
+    )
+    console.log("\n\n" + _.map(pad, colNames).join("  "))
 
-    console.log("-".repeat(DELIM_LEN));
+    console.log("-".repeat(DELIM_LEN))
     _.pipe(
         _.map((q) => [
             // Parse API data in human readable format
@@ -199,15 +209,12 @@ const quotes = async () => {
         zebra,
         _.map(_.join("  ")),
         _.forEach(console.log)
-    )(stocks);
-};
+    )(stocks)
+}
 
 // Stock chart of a symbol e.g. AAPL
 const chart = async () => {
-    const [hist, qt] = await Promise.all([
-        getHist(),
-        getQuote(param.chart),
-    ]);
+    const [hist, qt] = await Promise.all([getHist(), getQuote(param.chart)])
     const chart = _.pipe(
         _.map(_.identity),
         _.tail,
@@ -215,9 +222,9 @@ const chart = async () => {
         interpolateArray(width),
         _.compact,
         (x) => asciichart.plot(x, { height: height })
-    )(hist);
-    const q = qt[0];
-    console.log(chart);
+    )(hist)
+    const q = qt[0]
+    console.log(chart)
     console.log(
         " ".repeat(15) +
             (q.symbol +
@@ -227,9 +234,9 @@ const chart = async () => {
                 q.price +
                 " | MktCap: " +
                 q.cap)
-    );
-};
+    )
+}
 
 // Main function / Entrypoint
-const main = async () => (param.chart ? chart() : quotes());
-main();
+const main = async () => (param.chart ? chart() : quotes())
+main()
