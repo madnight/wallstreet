@@ -165,19 +165,18 @@ const quotes = async () => {
     ])
 
     // Print market table header
-    const f = (i) => _.find({ symbol: i }, marketData)
     const x = [
         // eslint-disable-line no-undef
-        f("DOW"),
-        f("HongKong"),
-        f("Gold"),
-        f("S&P500"),
-        f("London"),
-        f("Oil"),
-        f("NASDAQ"),
-        f("Germany"),
-        f("Yield10y"),
-    ].map((x, i) =>
+        "DOW",
+        "HongKong",
+        "Gold",
+        "S&P500",
+        "London",
+        "Oil",
+        "NASDAQ",
+        "Germany",
+        "Yield10y",
+    ].map((i) => _.find({ symbol: i }, marketData)).map((x, i) =>
         tableHead(
             (i % 3 == 0 ? "\n" : "") + x.symbol,
             COL_PAD,
@@ -204,8 +203,7 @@ const quotes = async () => {
             dollar(q.fiftyTwoWeekRange.replace(/\d+.\d+\s-\s/i, "")),
             percentColor(plusSign(q.perfYTD)),
         ]),
-        _.map(_.map(_.defaultTo(""))),
-        _.map(_.map(pad)),
+        _.map(_.map(_.pipe(_.defaultTo(""), pad))),
         zebra,
         _.map(_.join("  ")),
         _.forEach(console.log)
