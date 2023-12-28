@@ -26,22 +26,38 @@
     <div id="tableDiv"></div>
     <script>
     async function generateTable() {
+
+
         var div = document.getElementById("tableDiv");
     
         // Fetch data from the API
-        var path = window.location.search.substring(1);
-    
-        // Fetch data from the API
-        var response = await fetch(`https://corsproxy.io/?https%3A%2F%2Ffinance.beuke.org%2F${path}`);
-        var data = await response.json();
-    
-        // Convert the complex object received from the API to a simpler format
-        var stocks = [];
-        data.forEach(stockObj => {
-            var key = Object.keys(stockObj)[0];
-            var stockData = stockObj[key];
+
+        var queryString = window.location.search.substring(1);
+        var symbols = queryString.split(',');
+        // Function to fetch data for a single symbol
+        async function fetchDataForSymbol(symbol) {
+            try {
+                var response = await fetch(`https://corsproxy.io/?https%3A%2F%2Ffinance.beuke.org%2F/quote/${symbol}`);
+                var data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error fetching data for symbol:', symbol, error);
+            }
+        }
+        // Function to loop through all symbols and fetch their data
+        async function fetchAllSymbolsData(symbols) {
+            var allData = [];
+            for (let symbol of symbols) {
+                var data = await fetchDataForSymbol(symbol);
+                if (data) {
+                    allData.push(data);
+                }
+            }
+
+        stocks = [];
+        allData.forEach(stockData => {
             stocks.push({
-                'Symbol': key,
+                'Symbol': stockData['symbol'],
                 'Price': '$' + stockData['Price'],
                 'Change': stockData['Change'],
                 'Average Volume': stockData['Avg Volume'],
@@ -52,7 +68,6 @@
                 'YTD Change': stockData['Perf YTD']
             });
         });
-    
         var table = document.createElement("table");
     
         // Create the header row
@@ -83,6 +98,19 @@
         table.appendChild(tbody);
         div.appendChild(table);
     }
+
+// Call the function to fetch data for all symbols
+fetchAllSymbolsData(symbols).then(allData => {
+    console.log('All data fetched:', allData);
+}).catch(error => {
+    console.error('Error fetching data for all symbols:', error);
+});
+
+
+
+
+}
+
     
     generateTable();
     </script>
