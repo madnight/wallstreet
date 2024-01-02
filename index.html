@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock Data</title>
+
+<style>
+  body {
+    font-family: 'Arial', sans-serif;
+    background: #f4f7f6;
+    margin: 0;
+    padding: 20px;
+    color: #333;
+  }
+
+  .high-pe {
+    color: red;
+  }
+
+  .low-pe {
+    color: green;
+  }
+
+  h2 {
+    color: #2c3e50;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 25px 0;
+    font-size: 0.9em;
+    min-width: 400px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+  }
+
+  thead tr {
+    background-color: #009879;
+    color: #ffffff;
+    text-align: left;
+  }
+
+  th, td {
+    padding: 12px 15px;
+  }
+
+  tbody tr:nth-of-type(even) {
+    background-color: #1f1f1f;
+  }
+
+  tbody tr:hover {
+    background-color: #111111;
+  }
+
+  tbody tr.active-row {
+    font-weight: bold;
+    color: #009879;
+  }
+  .spinner {
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #3498db;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 2s linear infinite;
+    margin: 50px auto;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+</style>
+
+</head>
+<body>
+
+<h2>NDX Nasdaq-100</h2>
+<table id="stockTable">
+  <thead>
+    <tr>
+      <th>No.</th>
+      <th>Ticker</th>
+      <th>Name</th>
+      <th>Cap</th>
+      <th>P/E</th>
+      <th>P/FCF</th>
+      <th>P/S</th>
+      <th>P/B</th>
+      <th>Perf 5y</th>
+      <th>Perf 10y</th>
+      <th>Perf 15y</th>
+      <th>CAGR 10y</th>
+      <th>Sales 5y</th>
+      <th>RSI</th>
+      <th>PEG</th>
+      <th>Beta</th>
+      <th>Short %</th>
+      <th>Weight</th>
+    </tr>
+  </thead>
+  <tbody>
+  </tbody>
+</table>
+
+
+<div class="spinner" id="loadingSpinner"></div>
+<div id="averagePe"></div>
+<script>
+
+function roundAndConvertUnit(str) {
+  const numericPart = parseFloat(str.slice(0, -1));
+  const unit = str.slice(-1).toUpperCase();
+  let roundedNumber;
+  let newUnit = unit;
+  if (unit === 'B' && numericPart >= 1000) {
+    roundedNumber = (numericPart / 1000).toFixed(1);
+    newUnit = 'T';
+  } else if (unit === 'B') {
+    roundedNumber = Math.round(numericPart);
+  } else if (unit === 'T') {
+    roundedNumber = numericPart.toFixed(1);
+  } else {
+    roundedNumber = Math.round(numericPart);
+  }
+  return `${roundedNumber}${newUnit}`;
+}
+
+function addCell(content, type = '') {
+  const table = document.getElementById('stockTable');
+  const lastRow = table.rows[table.rows.length - 1];
+  const cell = lastRow.insertCell(lastRow.cells.length);
+  cell.textContent = content;
+
+  if (type === 'pe') {
+    const peValue = parseFloat(content);
+    if (peValue > 40) {
+      cell.classList.add('high-pe');
+    } else if (peValue < 10) {
+      cell.classList.add('low-pe');
+    }
+  }
+
+}
+
+function checkNaN(value, formatter = (val) => val, suffix = '') {
+  if (isNaN(value)) {
+    return '-';
+  } else {
+    return formatter(value) + suffix;
+  }
+}
+
+
+let weightedPeSum = 0;
+let totalWeight = 0;
+let weightedPeValues = [];
+
+// Function to fetch stock data and populate the table
+function getQQQHoldings() {
+  const url = "https://finance.beuke.org/ndx";
+  fetch(url)
+    .then(response => response.json())
+    .then(data => {
+      const tableBody = document.getElementById('stockTable').getElementsByTagName('tbody')[0];
+      const spinner = document.getElementById('loadingSpinner');
+      data.forEach((stock, index) => {
+      const row = tableBody.insertRow();
+
+    const pe = stock["P/E"];
+    const weight = parseFloat(stock["weight"]);
+
+    if (!isNaN(pe) && !isNaN(weight)) {
+      for (let i = 0; i < weight; i++) {
+        weightedPeValues.push(parseFloat(pe));
+      }
+    }
+    addCell(index + 1);
+    addCell(stock.symbol);
+    addCell(stock.shortName);
+    addCell(roundAndConvertUnit(stock["Market Cap"]));
+    addCell(checkNaN(stock["P/E"], Math.round), 'pe');
+    addCell(checkNaN(stock["P/FCF"], Math.round), 'pe');
+    addCell(checkNaN(stock["P/S"], Math.round));
+    addCell(checkNaN(stock.priceToBook, Math.round));
+    addCell(checkNaN(stock["Perf5y"], (val) => ((1 + val / 100).toFixed(1)), "x"));
+    addCell(checkNaN(stock["Perf10y"], (val) => ((1 + val / 100).toFixed(1)), "x"));
+    addCell(checkNaN(stock["Perf15y"], (val) => ((1 + val / 100).toFixed(1)), "x"));
+    addCell(checkNaN(stock["CAGR10y"], Math.round, "%"));
+    addCell(stock["Sales past 5Y"] || '-');
+    addCell(checkNaN(stock["RSI (14)"], Math.round));
+    addCell(checkNaN(stock["pegRatio"], (val) => val.toFixed(1)));
+    addCell(checkNaN(stock["beta"], (val) => val.toFixed(1)));
+    addCell(checkNaN(stock["shortPercentOfFloat"], (val) => (val * 100).toFixed(2), '%'));
+    addCell(stock["weight"] + '%');
+    });
+      // Hide spinner and show table when data is loaded
+      spinner.style.display = 'none';
+      stockTable.style.display = 'table';
+
+    if (weightedPeValues.length > 0) {
+      const sortedWeightedPeValues = weightedPeValues.sort((a, b) => a - b);
+      const middleIndex = Math.floor(sortedWeightedPeValues.length / 2);
+      const weightedMedianPe = (sortedWeightedPeValues.length % 2 !== 0) ?
+        sortedWeightedPeValues[middleIndex] :
+        ((sortedWeightedPeValues[middleIndex - 1] + sortedWeightedPeValues[middleIndex]) / 2).toFixed(2);
+      document.getElementById('averagePe').textContent = `Weighted Median P/E: ${weightedMedianPe}`;
+    } else {
+      document.getElementById('averagePe').textContent = "Weighted Median P/E: -";
+    }
+
+    })
+    .catch(error => {
+      console.error('Error fetching data:', error);
+      // Hide spinner if there is an error
+      document.getElementById('loadingSpinner').style.display = 'none';
+    });
+}
+
+// Call the function to fetch and display the data
+getQQQHoldings();
+</script>
+
+</body>
+</html>
