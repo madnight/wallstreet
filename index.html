@@ -91,11 +91,13 @@
       <th>PEG</th>
       <th>Beta</th>
       <th>RSI</th>
-      <th>CAGR <br>Perf 5y</th>
-      <th>CAGR <br>Perf 10y</th>
-      <th>CAGR <br>Perf 15y</th>
-      <th>CAGR <br>Sales 5y</th>
+      <th>CAGR <br>Perf5y</th>
+      <th>CAGR <br>Perf10y</th>
+      <th>CAGR <br>Perf15y</th>
+      <th>CAGR <br>Sales5y</th>
+      <th>CAGR <br>EPS5y</th>
       <th>Short %</th>
+      <th>Employees</th>
       <th>Weight</th>
     </tr>
   </thead>
@@ -107,6 +109,16 @@
 <div class="spinner" id="loadingSpinner"></div>
 <div id="averagePe"></div>
 <script>
+
+function formatNumber(num) {
+  if (num >= 1e9) {
+    return Math.round(num / 1e9) + 'B';
+  }
+  if (num >= 1e3) {
+    return Math.round(num / 1e3) + 'k';
+  }
+  return num.toString();
+}
 
 function roundAndConvertUnit(str) {
   const numericPart = parseFloat(str.slice(0, -1));
@@ -166,7 +178,7 @@ let weightedPeValues = [];
 function addCells(stock, index) {
   const tableBody = document.getElementById('stockTable').getElementsByTagName('tbody')[0];
   const row = tableBody.insertRow();
-  const keys = ['symbol', 'shortName', 'Market Cap', 'P/E', 'P/FCF', 'P/S', 'priceToBook', 'pegRatio', 'beta', 'RSI (14)', 'Perf5y', 'Perf10y', 'Perf15y', 'Sales past 5Y', 'shortPercentOfFloat', 'weight'];
+  const keys = ['symbol', 'shortName', 'Market Cap', 'P/E', 'P/FCF', 'P/S', 'priceToBook', 'pegRatio', 'beta', 'RSI (14)', 'Perf5y', 'Perf10y', 'Perf15y', 'Sales past 5Y', 'EPS past 5Y', 'shortPercentOfFloat', 'Employees', 'weight'];
   const formatters = {
     symbol: val => val,
     shortName: val => val,
@@ -181,9 +193,11 @@ function addCells(stock, index) {
     'Perf5y': val => checkNaN(Math.round(checkNaN(((1 + val / 100)) ** (1/5) - 1) * 100)) + (isNaN(val) ? '' : '%'),
     'Perf10y': val => checkNaN(Math.round(checkNaN(((1 + val / 100)) ** (1/10) - 1) * 100)) + (isNaN(val) ? '' : '%'),
     'Perf15y': val => checkNaN(Math.round(checkNaN(((1 + val / 100)) ** (1/15) - 1) * 100)) + (isNaN(val) ? '' : '%'),
-    'Sales past 5Y': val => val || '-',
+    'Sales past 5Y': val => val == null ? "-" : `${Math.round(parseFloat(val))}%`,
+    'EPS past 5Y': val => val == "-" ? "-" : `${Math.round(parseFloat(val))}%`,
     'shortPercentOfFloat': val => checkNaN(val * 100, val => val.toFixed(2), '%'),
-    'weight': val => val + '%',
+    'Employees': val => formatNumber(val),
+    'weight': val => val + '%'
   };
   const specialTypes = {
     'P/E': 'pe',
