@@ -83,19 +83,18 @@
       <th>No.</th>
       <th>Ticker</th>
       <th>Name</th>
-      <th>Cap</th>
+      <th>Market<br>Cap</th>
       <th>P/E</th>
       <th>P/FCF</th>
       <th>P/S</th>
       <th>P/B</th>
-      <th>Perf 5y</th>
-      <th>Perf 10y</th>
-      <th>Perf 15y</th>
-      <th>CAGR 10y</th>
-      <th>Sales 5y</th>
-      <th>RSI</th>
       <th>PEG</th>
       <th>Beta</th>
+      <th>RSI</th>
+      <th>CAGR <br>Perf 5y</th>
+      <th>CAGR <br>Perf 10y</th>
+      <th>CAGR <br>Perf 15y</th>
+      <th>CAGR <br>Sales 5y</th>
       <th>Short %</th>
       <th>Weight</th>
     </tr>
@@ -131,7 +130,15 @@ function addCell(content, type = '') {
   const table = document.getElementById('stockTable');
   const lastRow = table.rows[table.rows.length - 1];
   const cell = lastRow.insertCell(lastRow.cells.length);
-  cell.textContent = content;
+
+  if (type === 'beta' && parseFloat(content) > 2) {
+    const span = document.createElement('span');
+    span.style.color = 'red';
+    span.textContent = content;
+    cell.appendChild(span);
+  } else {
+    cell.textContent = content;
+  }
 
   if (type === 'pe') {
     const peValue = parseFloat(content);
@@ -141,7 +148,6 @@ function addCell(content, type = '') {
       cell.classList.add('low-pe');
     }
   }
-
 }
 
 function checkNaN(value, formatter = (val) => val, suffix = '') {
@@ -156,6 +162,45 @@ function checkNaN(value, formatter = (val) => val, suffix = '') {
 let weightedPeSum = 0;
 let totalWeight = 0;
 let weightedPeValues = [];
+
+function addCells(stock, index) {
+  const tableBody = document.getElementById('stockTable').getElementsByTagName('tbody')[0];
+  const row = tableBody.insertRow();
+  const keys = ['symbol', 'shortName', 'Market Cap', 'P/E', 'P/FCF', 'P/S', 'priceToBook', 'pegRatio', 'beta', 'RSI (14)', 'Perf5y', 'Perf10y', 'Perf15y', 'Sales past 5Y', 'shortPercentOfFloat', 'weight'];
+  const formatters = {
+    symbol: val => val,
+    shortName: val => val,
+    'Market Cap': val => roundAndConvertUnit(val),
+    'P/E': val => checkNaN(val, Math.round),
+    'P/FCF': val => checkNaN(val, Math.round),
+    'P/S': val => checkNaN(val, Math.round),
+    'priceToBook': val => checkNaN(val, Math.round),
+    'pegRatio': val => checkNaN(val, (val) => val.toFixed(1)),
+    'beta': val => checkNaN(val, (val) => val.toFixed(1)),
+    'RSI (14)': val => checkNaN(val, Math.round),
+    'Perf5y': val => checkNaN(Math.round(checkNaN(((1 + val / 100)) ** (1/5) - 1) * 100)) + (isNaN(val) ? '' : '%'),
+    'Perf10y': val => checkNaN(Math.round(checkNaN(((1 + val / 100)) ** (1/10) - 1) * 100)) + (isNaN(val) ? '' : '%'),
+    'Perf15y': val => checkNaN(Math.round(checkNaN(((1 + val / 100)) ** (1/15) - 1) * 100)) + (isNaN(val) ? '' : '%'),
+    'Sales past 5Y': val => val || '-',
+    'shortPercentOfFloat': val => checkNaN(val * 100, val => val.toFixed(2), '%'),
+    'weight': val => val + '%',
+  };
+  const specialTypes = {
+    'P/E': 'pe',
+    'P/FCF': 'pe',
+    'beta': 'beta',
+  };
+
+  addCell(index + 1);
+  keys.forEach(key => {
+    let content = stock[key];
+    if (formatters.hasOwnProperty(key)) {
+      content = formatters[key](stock[key]);
+    }
+    const type = specialTypes[key] || '';
+    addCell(content, type);
+  });
+}
 
 // Function to fetch stock data and populate the table
 function getQQQHoldings() {
@@ -176,24 +221,7 @@ function getQQQHoldings() {
         weightedPeValues.push(parseFloat(pe));
       }
     }
-    addCell(index + 1);
-    addCell(stock.symbol);
-    addCell(stock.shortName);
-    addCell(roundAndConvertUnit(stock["Market Cap"]));
-    addCell(checkNaN(stock["P/E"], Math.round), 'pe');
-    addCell(checkNaN(stock["P/FCF"], Math.round), 'pe');
-    addCell(checkNaN(stock["P/S"], Math.round));
-    addCell(checkNaN(stock.priceToBook, Math.round));
-    addCell(checkNaN(stock["Perf5y"], (val) => ((1 + val / 100).toFixed(1)), "x"));
-    addCell(checkNaN(stock["Perf10y"], (val) => ((1 + val / 100).toFixed(1)), "x"));
-    addCell(checkNaN(stock["Perf15y"], (val) => ((1 + val / 100).toFixed(1)), "x"));
-    addCell(checkNaN(stock["CAGR10y"], Math.round, "%"));
-    addCell(stock["Sales past 5Y"] || '-');
-    addCell(checkNaN(stock["RSI (14)"], Math.round));
-    addCell(checkNaN(stock["pegRatio"], (val) => val.toFixed(1)));
-    addCell(checkNaN(stock["beta"], (val) => val.toFixed(1)));
-    addCell(checkNaN(stock["shortPercentOfFloat"], (val) => (val * 100).toFixed(2), '%'));
-    addCell(stock["weight"] + '%');
+    addCells(stock, index);
     });
       // Hide spinner and show table when data is loaded
       spinner.style.display = 'none';
