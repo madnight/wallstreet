@@ -42,7 +42,7 @@
   }
 
   th, td {
-    padding: 12px 15px;
+    padding: 8px 10px;
   }
 
   tbody tr:nth-of-type(even) {
@@ -261,7 +261,43 @@ function getQQQHoldings() {
 }
 
 // Call the function to fetch and display the data
-getQQQHoldings();
+
+// check if site has a query parameter
+const urlParams = new URLSearchParams(window.location.search);
+const tickers = urlParams.get('quotes');
+
+
+
+
+if (tickers) {
+  // Split the tickers into an array, even if there's only one ticker without commas
+  const tickerArray = tickers.split(',').map(ticker => ticker.trim()); // Trim whitespace from each ticker
+
+  // Loop through each ticker and make a request to the finance API
+  let index = 0;
+  tickerArray.forEach(ticker => {
+    const url = "https://finance.beuke.org/quote/" + ticker;
+    fetch(url)
+      .then(response => response.json())
+      .then(data => {
+        const tableBody = document.getElementById('stockTable').getElementsByTagName('tbody')[0];
+        const spinner = document.getElementById('loadingSpinner');
+        console.log(data);
+        addCells(data, index); // You need to define this function to add data to the table
+        index = index + 1;
+        if (index === tickerArray.length) {
+          // Hide spinner and show table when data is loaded
+          spinner.style.display = 'none';
+          stockTable.style.display = 'table';
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching data for ticker:', ticker, error);
+      });
+  });
+} else {
+  getQQQHoldings();
+}
 </script>
 
 </body>
