@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Stock Data</title>
 
+<script src="https://code.highcharts.com/stock/highstock.js"></script>
+<script src="https://code.highcharts.com/stock/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/stock/indicators/indicators-all.js"></script>
+<script src="https://code.highcharts.com/stock/modules/accessibility.js"></script>
+
+
 <style>
   body {
     font-family: 'Arial', sans-serif;
@@ -73,6 +79,7 @@
   }
 </style>
 
+
 </head>
 <body>
 
@@ -90,6 +97,7 @@
       <th>P/B</th>
       <th>PEG</th>
       <th>Beta</th>
+      <th>Analyst <br> Recom.</th>
       <th>RSI</th>
       <th>CAGR <br>Perf5y</th>
       <th>CAGR <br>Perf10y</th>
@@ -108,6 +116,75 @@
 
 <div class="spinner" id="loadingSpinner"></div>
 <div id="averagePe"></div>
+
+
+<div class="main-wrapper">
+  <div class="selectors-container">
+    <div class="col">
+      <label for="overlays">Overlays:</label>
+      <select class="left-select" id="overlays">
+        <option value="abands">Acceleration Bands</option>
+        <option value="bb" selected="selected">Bollinger Bands</option>
+        <option value="dema">DEMA (Double Exponential Moving Average)</option>
+        <option value="ema">EMA (Exponential Moving Average)</option>
+        <option value="ikh">Ichimoku Kinko Hyo</option>
+        <option value="keltnerchannels">Keltner Channels</option>
+        <option value="linearRegression">Linear Regression</option>
+        <option value="pivotpoints">Pivot Points</option>
+        <option value="pc">Price Channel</option>
+        <option value="priceenvelopes">Price Envelopes</option>
+        <option value="psar">PSAR (Parabolic SAR)</option>
+        <option value="sma">SMA (Simple Moving Average)</option>
+        <option value="supertrend">Super Trend</option>
+        <option value="tema">TEMA (Triple Exponential Moving Average)</option>
+        <option value="vbp">VbP (Volume by Price)</option>
+        <option value="vwap">WMA (Weighted Moving Average)</option>
+        <option value="wma">VWAP (Volume Weighted Average Price)</option>
+        <option value="zigzag">Zig Zag</option>
+      </select>
+    </div>
+    <div class="col">
+      <label for="oscillators">Oscillators:</label>
+      <select class="right-select" id="oscillators">
+        <option value="apo">Absolute price indicator</option>
+        <option value="ad">A/D (Accumulation/Distribution)</option>
+        <option value="aroon">Aroon</option>
+        <option value="aroonoscillator">Aroon oscillator</option>
+        <option value="atr">ATR (Average True Range)</option>
+        <option value="ao">Awesome oscillator</option>
+        <option value="cci">CCI (Commodity Channel Index)</option>
+        <option value="chaikin">Chaikin</option>
+        <option value="cmf">CMF (Chaikin Money Flow)</option>
+        <option value="disparityindex">Disparity Index</option>
+        <option value="cmo">CMO (Chande Momentum Oscillator)</option>
+        <option value="dmi">DMI (Directional Movement Index)</option>
+        <option value="dpo">Detrended price</option>
+        <option value="linearRegressionAngle">Linear Regression Angle</option>
+        <option value="linearRegressionIntercept">Linear Regression Intercept</option>
+        <option value="linearRegressionSlope">Linear Regression Slope</option>
+        <option value="klinger">Klinger Oscillator</option>
+        <option value="macd">MACD (Moving Average Convergence Divergence)</option>
+        <option value="mfi">MFI (Money Flow Index)</option>
+        <option value="momentum">Momentum</option>
+        <option value="natr">NATR (Normalized Average True Range)</option>
+        <option value="obv">OBV (On-Balance Volume)</option>
+        <option value="ppo">Percentage Price oscillator</option>
+        <option value="roc">RoC (Rate of Change)</option>
+        <option value="rsi" selected="selected">RSI (Relative Strength Index)</option>
+        <option value="slowstochastic">Slow Stochastic</option>
+        <option value="stochastic">Stochastic</option>
+        <option value="trix">TRIX</option>
+        <option value="williamsr">Williams %R</option>
+      </select>
+    </div>
+  </div>
+  <div id="container"></div>
+</div>
+
+
+
+
+
 <script>
 
 function formatNumber(num) {
@@ -178,7 +255,7 @@ let weightedPeValues = [];
 function addCells(stock, index) {
   const tableBody = document.getElementById('stockTable').getElementsByTagName('tbody')[0];
   const row = tableBody.insertRow();
-  const keys = ['symbol', 'shortName', 'Market Cap', 'P/E', 'P/FCF', 'P/S', 'priceToBook', 'pegRatio', 'beta', 'RSI (14)', 'Perf5y', 'Perf10y', 'Perf15y', 'Sales past 5Y', 'EPS past 5Y', 'shortPercentOfFloat', 'Employees', 'weight'];
+  const keys = ['symbol', 'shortName', 'Market Cap', 'P/E', 'P/FCF', 'P/S', 'priceToBook', 'pegRatio', 'beta', 'Recom', 'RSI (14)', 'Perf5y', 'Perf10y', 'Perf15y', 'Sales past 5Y', 'EPS past 5Y', 'shortPercentOfFloat', 'Employees', 'weight'];
   const formatters = {
     symbol: val => val,
     shortName: val => val,
@@ -189,6 +266,7 @@ function addCells(stock, index) {
     'priceToBook': val => checkNaN(val, Math.round),
     'pegRatio': val => checkNaN(val, (val) => val.toFixed(1)),
     'beta': val => checkNaN(val, (val) => val.toFixed(1)),
+    'Recom': val => checkNaN(val, (val) => val),
     'RSI (14)': val => checkNaN(val, Math.round),
     'Perf5y': val => checkNaN(Math.round(checkNaN(((1 + val / 100)) ** (1/5) - 1) * 100)) + (isNaN(val) ? '' : '%'),
     'Perf10y': val => checkNaN(Math.round(checkNaN(((1 + val / 100)) ** (1/10) - 1) * 100)) + (isNaN(val) ? '' : '%'),
@@ -298,7 +376,151 @@ if (tickers) {
 } else {
   getQQQHoldings();
 }
-</script>
 
+(async () => {
+
+    const data = await fetch(
+        'http://127.0.0.1:5000/ndx_data'
+    ).then(response => response.json());
+
+    // split the data set into ohlc and volume
+    let ohlc = [],
+        volume = [],
+        dataLength = data.length;
+
+
+    for (let i = 0; i < dataLength; i += 1) {
+        ohlc.push([
+          data[i]["Date"], // the date
+            parseFloat(data[i]["Open"].toFixed(1)), // open
+            parseFloat(data[i]["High"].toFixed(1)), // high
+            parseFloat(data[i]["Low"].toFixed(1)), // low
+            parseFloat(data[i]["Close"].toFixed(1)) // close
+        ]);
+
+        volume.push([
+            data[i]["Date"], // the date
+            data[i]["Volume"] // the volume
+        ]);
+    }
+
+  // filter 9 out of 10 data points from volume
+  // filter 9 out of 10 data points from  ohlc
+
+
+    // create the chart
+    Highcharts.stockChart('container', {
+        chart: {
+            height: 800
+        },
+        title: {
+            text: 'NDX Historical'
+        },
+        subtitle: {
+            text: 'All indicators'
+        },
+        accessibility: {
+            series: {
+                descriptionFormat: '{seriesDescription}.'
+            },
+            description: 'Use the dropdown menus above to display different indicator series on the chart.',
+            screenReaderSection: {
+                beforeChartFormat: '<{headingTagName}>{chartTitle}</{headingTagName}><div>{typeDescription}</div><div>{chartSubtitle}</div><div>{chartLongdesc}</div>'
+            }
+        },
+        legend: {
+            enabled: true
+        },
+        rangeSelector: {
+            selected: 2
+        },
+        yAxis: [{
+            height: '60%'
+        }, {
+            top: '60%',
+            height: '20%'
+        }, {
+            top: '80%',
+            height: '20%'
+        }],
+        plotOptions: {
+            spline: {
+                 marker: {
+                     enabled: false
+                 }
+            },
+            series: {
+                showInLegend: true,
+                accessibility: {
+                    exposeAsGroupOnly: true
+                }
+            }
+        },
+
+        series: [{
+            type: 'candlestick',
+            id: 'ndx',
+            name: 'NDX',
+            data: ohlc
+        }, {
+            type: 'column',
+            id: 'volume',
+            name: 'Volume',
+            data: volume,
+            yAxis: 1
+        },
+ {
+  type: 'sma',
+  linkedTo: 'ndx',
+   marker: {
+       enabled: false
+    },
+  params: {
+    period: 50
+  }
+},
+
+          {
+            type: 'rsi',
+            id: 'oscillator',
+            linkedTo: 'ndx',
+            yAxis: 2,
+marker: {
+       enabled: false
+    },
+
+        }]
+    }, function (chart) {
+        document.getElementById('overlays').addEventListener('change', function (e) {
+            const series = chart.get('overlay');
+
+            if (series) {
+                series.remove(false);
+                chart.addSeries({
+                    type: e.target.value,
+                    linkedTo: 'aapl',
+                    id: 'overlay'
+                });
+            }
+        });
+
+        document.getElementById('oscillators').addEventListener('change', function (e) {
+            const series = chart.get('oscillator');
+
+            if (series) {
+                series.remove(false);
+                chart.addSeries({
+                    type: e.target.value,
+                    linkedTo: 'aapl',
+                    id: 'oscillator',
+                    yAxis: 2
+                });
+            }
+        });
+    });
+})();
+
+</script>
 </body>
 </html>
+
