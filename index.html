@@ -215,6 +215,36 @@ function roundAndConvertUnit(str) {
   return `${roundedNumber}${newUnit}`;
 }
 
+
+function classifyCellByValue(type, content, cell) {
+  const value = parseFloat(content);
+
+  let thresholdHigh, thresholdLow, classHigh, classLow;
+
+  switch (type) {
+    case 'pe':
+      thresholdHigh = 40;
+      thresholdLow = 10;
+      break;
+    case 'Recom':
+      thresholdHigh = 2.5;
+      thresholdLow = 1.5;
+      break;
+    case 'rsi':
+      thresholdHigh = 70;
+      thresholdLow = 30;
+      break;
+    default:
+      return;
+  }
+
+  if (value > thresholdHigh) {
+    cell.classList.add('high-pe');
+  } else if (value < thresholdLow) {
+    cell.classList.add('low-pe');
+  }
+}
+
 function addCell(content, type = '') {
   const table = document.getElementById('stockTable');
   const lastRow = table.rows[table.rows.length - 1];
@@ -229,14 +259,7 @@ function addCell(content, type = '') {
     cell.textContent = content;
   }
 
-  if (type === 'pe') {
-    const peValue = parseFloat(content);
-    if (peValue > 40) {
-      cell.classList.add('high-pe');
-    } else if (peValue < 10) {
-      cell.classList.add('low-pe');
-    }
-  }
+  classifyCellByValue(type, content, cell);
 }
 
 function checkNaN(value, formatter = (val) => val, suffix = '') {
@@ -281,6 +304,8 @@ function addCells(stock, index) {
     'P/E': 'pe',
     'P/FCF': 'pe',
     'beta': 'beta',
+    'RSI (14)': 'rsi',
+    'Recom': 'Recom'
   };
 
   addCell(index + 1);
