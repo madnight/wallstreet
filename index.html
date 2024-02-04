@@ -1,551 +1,702 @@
-<!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Stock Data</title>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Stock Data</title>
 
-<script src="https://code.highcharts.com/stock/highstock.js"></script>
-<script src="https://code.highcharts.com/stock/modules/exporting.js"></script>
-<script src="https://code.highcharts.com/stock/indicators/indicators-all.js"></script>
-<script src="https://code.highcharts.com/stock/modules/accessibility.js"></script>
+        <script src="https://code.highcharts.com/stock/highstock.js"></script>
+        <script src="https://code.highcharts.com/stock/modules/exporting.js"></script>
+        <script src="https://code.highcharts.com/stock/indicators/indicators-all.js"></script>
+        <script src="https://code.highcharts.com/stock/modules/accessibility.js"></script>
 
-
-<style>
-  body {
-    font-family: 'Arial', sans-serif;
-    background: #f4f7f6;
-    margin: 0;
-    padding: 20px;
-    color: #333;
-  }
-
-  .high-pe {
-    color: red;
-  }
-
-  .low-pe {
-    color: green;
-  }
-
-  h2 {
-    color: #2c3e50;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 25px 0;
-    font-size: 0.9em;
-    min-width: 400px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
-  }
-
-  thead tr {
-    background-color: #009879;
-    color: #ffffff;
-    text-align: left;
-  }
-
-  th, td {
-    padding: 8px 10px;
-  }
-
-  tbody tr:nth-of-type(even) {
-    background-color: #1f1f1f;
-  }
-
-  tbody tr:hover {
-    background-color: #111111;
-  }
-
-  tbody tr.active-row {
-    font-weight: bold;
-    color: #009879;
-  }
-  .spinner {
-    border: 5px solid #f3f3f3;
-    border-top: 5px solid #3498db;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    animation: spin 2s linear infinite;
-    margin: 50px auto;
-  }
-
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-</style>
-
-
-</head>
-<body>
-
-<h2>NDX Nasdaq-100</h2>
-<table id="stockTable">
-  <thead>
-    <tr>
-      <th>No.</th>
-      <th>Ticker</th>
-      <th>Name</th>
-      <th>Market<br>Cap</th>
-      <th>P/E</th>
-      <th>P/FCF</th>
-      <th>P/S</th>
-      <th>P/B</th>
-      <th>PEG</th>
-      <th>Beta</th>
-      <th>Analyst <br> Recom.</th>
-      <th>RSI</th>
-      <th>CAGR <br>Perf5y</th>
-      <th>CAGR <br>Perf10y</th>
-      <th>CAGR <br>Perf15y</th>
-      <th>CAGR <br>Sales5y</th>
-      <th>CAGR <br>EPS5y</th>
-      <th>Short %</th>
-      <th>Employees</th>
-      <th>Weight</th>
-    </tr>
-  </thead>
-  <tbody>
-  </tbody>
-</table>
-
-
-<div class="spinner" id="loadingSpinner"></div>
-<div id="averagePe"></div>
-
-
-<div class="main-wrapper">
-  <div class="selectors-container">
-    <div class="col">
-      <label for="overlays">Overlays:</label>
-      <select class="left-select" id="overlays">
-        <option value="abands">Acceleration Bands</option>
-        <option value="bb" selected="selected">Bollinger Bands</option>
-        <option value="dema">DEMA (Double Exponential Moving Average)</option>
-        <option value="ema">EMA (Exponential Moving Average)</option>
-        <option value="ikh">Ichimoku Kinko Hyo</option>
-        <option value="keltnerchannels">Keltner Channels</option>
-        <option value="linearRegression">Linear Regression</option>
-        <option value="pivotpoints">Pivot Points</option>
-        <option value="pc">Price Channel</option>
-        <option value="priceenvelopes">Price Envelopes</option>
-        <option value="psar">PSAR (Parabolic SAR)</option>
-        <option value="sma">SMA (Simple Moving Average)</option>
-        <option value="supertrend">Super Trend</option>
-        <option value="tema">TEMA (Triple Exponential Moving Average)</option>
-        <option value="vbp">VbP (Volume by Price)</option>
-        <option value="vwap">WMA (Weighted Moving Average)</option>
-        <option value="wma">VWAP (Volume Weighted Average Price)</option>
-        <option value="zigzag">Zig Zag</option>
-      </select>
-    </div>
-    <div class="col">
-      <label for="oscillators">Oscillators:</label>
-      <select class="right-select" id="oscillators">
-        <option value="apo">Absolute price indicator</option>
-        <option value="ad">A/D (Accumulation/Distribution)</option>
-        <option value="aroon">Aroon</option>
-        <option value="aroonoscillator">Aroon oscillator</option>
-        <option value="atr">ATR (Average True Range)</option>
-        <option value="ao">Awesome oscillator</option>
-        <option value="cci">CCI (Commodity Channel Index)</option>
-        <option value="chaikin">Chaikin</option>
-        <option value="cmf">CMF (Chaikin Money Flow)</option>
-        <option value="disparityindex">Disparity Index</option>
-        <option value="cmo">CMO (Chande Momentum Oscillator)</option>
-        <option value="dmi">DMI (Directional Movement Index)</option>
-        <option value="dpo">Detrended price</option>
-        <option value="linearRegressionAngle">Linear Regression Angle</option>
-        <option value="linearRegressionIntercept">Linear Regression Intercept</option>
-        <option value="linearRegressionSlope">Linear Regression Slope</option>
-        <option value="klinger">Klinger Oscillator</option>
-        <option value="macd">MACD (Moving Average Convergence Divergence)</option>
-        <option value="mfi">MFI (Money Flow Index)</option>
-        <option value="momentum">Momentum</option>
-        <option value="natr">NATR (Normalized Average True Range)</option>
-        <option value="obv">OBV (On-Balance Volume)</option>
-        <option value="ppo">Percentage Price oscillator</option>
-        <option value="roc">RoC (Rate of Change)</option>
-        <option value="rsi" selected="selected">RSI (Relative Strength Index)</option>
-        <option value="slowstochastic">Slow Stochastic</option>
-        <option value="stochastic">Stochastic</option>
-        <option value="trix">TRIX</option>
-        <option value="williamsr">Williams %R</option>
-      </select>
-    </div>
-  </div>
-  <div id="container"></div>
-</div>
-
-
-
-
-
-<script>
-
-function formatNumber(num) {
-  if (num >= 1e9) {
-    return Math.round(num / 1e9) + 'B';
-  }
-  if (num >= 1e3) {
-    return Math.round(num / 1e3) + 'k';
-  }
-  return num.toString();
-}
-
-function roundAndConvertUnit(str) {
-  const numericPart = parseFloat(str.slice(0, -1));
-  const unit = str.slice(-1).toUpperCase();
-  let roundedNumber;
-  let newUnit = unit;
-  if (unit === 'B' && numericPart >= 1000) {
-    roundedNumber = (numericPart / 1000).toFixed(1);
-    newUnit = 'T';
-  } else if (unit === 'B') {
-    roundedNumber = Math.round(numericPart);
-  } else if (unit === 'T') {
-    roundedNumber = numericPart.toFixed(1);
-  } else {
-    roundedNumber = Math.round(numericPart);
-  }
-  return `${roundedNumber}${newUnit}`;
-}
-
-
-function classifyCellByValue(type, content, cell) {
-  const value = parseFloat(content);
-
-  let thresholdHigh, thresholdLow, classHigh, classLow;
-
-  switch (type) {
-    case 'pe':
-      thresholdHigh = 40;
-      thresholdLow = 10;
-      break;
-    case 'Recom':
-      thresholdHigh = 2.5;
-      thresholdLow = 1.5;
-      break;
-    case 'rsi':
-      thresholdHigh = 70;
-      thresholdLow = 30;
-      break;
-    default:
-      return;
-  }
-
-  if (value > thresholdHigh) {
-    cell.classList.add('high-pe');
-  } else if (value < thresholdLow) {
-    cell.classList.add('low-pe');
-  }
-}
-
-function addCell(content, type = '') {
-  const table = document.getElementById('stockTable');
-  const lastRow = table.rows[table.rows.length - 1];
-  const cell = lastRow.insertCell(lastRow.cells.length);
-
-  if (type === 'beta' && parseFloat(content) > 2) {
-    const span = document.createElement('span');
-    span.style.color = 'red';
-    span.textContent = content;
-    cell.appendChild(span);
-  } else {
-    cell.textContent = content;
-  }
-
-  classifyCellByValue(type, content, cell);
-}
-
-function checkNaN(value, formatter = (val) => val, suffix = '') {
-  if (isNaN(value)) {
-    return '-';
-  } else {
-    return formatter(value) + suffix;
-  }
-}
-
-
-let weightedPeSum = 0;
-let totalWeight = 0;
-let weightedPeValues = [];
-
-function addCells(stock, index) {
-  const tableBody = document.getElementById('stockTable').getElementsByTagName('tbody')[0];
-  const row = tableBody.insertRow();
-  const keys = ['symbol', 'shortName', 'Market Cap', 'P/E', 'P/FCF', 'P/S', 'priceToBook', 'pegRatio', 'beta', 'Recom', 'RSI (14)', 'Perf5y', 'Perf10y', 'Perf15y', 'Sales past 5Y', 'EPS past 5Y', 'shortPercentOfFloat', 'Employees', 'weight'];
-  const formatters = {
-    symbol: val => val,
-    shortName: val => val,
-    'Market Cap': val => roundAndConvertUnit(val),
-    'P/E': val => checkNaN(val, Math.round),
-    'P/FCF': val => checkNaN(val, Math.round),
-    'P/S': val => checkNaN(val, Math.round),
-    'priceToBook': val => checkNaN(val, Math.round),
-    'pegRatio': val => checkNaN(val, (val) => val.toFixed(1)),
-    'beta': val => checkNaN(val, (val) => val.toFixed(1)),
-    'Recom': val => checkNaN(val, (val) => val),
-    'RSI (14)': val => checkNaN(val, Math.round),
-    'Perf5y': val => checkNaN(Math.round(checkNaN(((1 + val / 100)) ** (1/5) - 1) * 100)) + (isNaN(val) ? '' : '%'),
-    'Perf10y': val => checkNaN(Math.round(checkNaN(((1 + val / 100)) ** (1/10) - 1) * 100)) + (isNaN(val) ? '' : '%'),
-    'Perf15y': val => checkNaN(Math.round(checkNaN(((1 + val / 100)) ** (1/15) - 1) * 100)) + (isNaN(val) ? '' : '%'),
-    'Sales past 5Y': val => val == null ? "-" : `${Math.round(parseFloat(val))}%`,
-    'EPS past 5Y': val => val == "-" ? "-" : `${Math.round(parseFloat(val))}%`,
-    'shortPercentOfFloat': val => checkNaN(val * 100, val => val.toFixed(2), '%'),
-    'Employees': val => formatNumber(val),
-    'weight': val => val + '%'
-  };
-  const specialTypes = {
-    'P/E': 'pe',
-    'P/FCF': 'pe',
-    'beta': 'beta',
-    'RSI (14)': 'rsi',
-    'Recom': 'Recom'
-  };
-
-  addCell(index + 1);
-  keys.forEach(key => {
-    let content = stock[key];
-    if (formatters.hasOwnProperty(key)) {
-      content = formatters[key](stock[key]);
-    }
-    const type = specialTypes[key] || '';
-    addCell(content, type);
-  });
-}
-
-// Function to fetch stock data and populate the table
-function getQQQHoldings() {
-  const url = "https://finance.beuke.org/ndx";
-  fetch(url)
-    .then(response => response.json())
-    .then(data => {
-      const tableBody = document.getElementById('stockTable').getElementsByTagName('tbody')[0];
-      const spinner = document.getElementById('loadingSpinner');
-      data.forEach((stock, index) => {
-      const row = tableBody.insertRow();
-
-    const pe = stock["P/E"];
-    const weight = parseFloat(stock["weight"]);
-
-    if (!isNaN(pe) && !isNaN(weight)) {
-      for (let i = 0; i < weight; i++) {
-        weightedPeValues.push(parseFloat(pe));
-      }
-    }
-    addCells(stock, index);
-    });
-      // Hide spinner and show table when data is loaded
-      spinner.style.display = 'none';
-      stockTable.style.display = 'table';
-
-    if (weightedPeValues.length > 0) {
-      const sortedWeightedPeValues = weightedPeValues.sort((a, b) => a - b);
-      const middleIndex = Math.floor(sortedWeightedPeValues.length / 2);
-      const weightedMedianPe = (sortedWeightedPeValues.length % 2 !== 0) ?
-        sortedWeightedPeValues[middleIndex] :
-        ((sortedWeightedPeValues[middleIndex - 1] + sortedWeightedPeValues[middleIndex]) / 2).toFixed(2);
-      document.getElementById('averagePe').textContent = `Weighted Median P/E: ${weightedMedianPe}`;
-    } else {
-      document.getElementById('averagePe').textContent = "Weighted Median P/E: -";
-    }
-
-    })
-    .catch(error => {
-      console.error('Error fetching data:', error);
-      // Hide spinner if there is an error
-      document.getElementById('loadingSpinner').style.display = 'none';
-    });
-}
-
-// Call the function to fetch and display the data
-
-// check if site has a query parameter
-const urlParams = new URLSearchParams(window.location.search);
-const tickers = urlParams.get('quotes');
-
-
-
-
-if (tickers) {
-  // Split the tickers into an array, even if there's only one ticker without commas
-  const tickerArray = tickers.split(',').map(ticker => ticker.trim()); // Trim whitespace from each ticker
-
-  // Loop through each ticker and make a request to the finance API
-  let index = 0;
-  tickerArray.forEach(ticker => {
-    const url = "https://finance.beuke.org/quote/" + ticker;
-    fetch(url)
-      .then(response => response.json())
-      .then(data => {
-        const tableBody = document.getElementById('stockTable').getElementsByTagName('tbody')[0];
-        const spinner = document.getElementById('loadingSpinner');
-        console.log(data);
-        addCells(data, index); // You need to define this function to add data to the table
-        index = index + 1;
-        if (index === tickerArray.length) {
-          // Hide spinner and show table when data is loaded
-          spinner.style.display = 'none';
-          stockTable.style.display = 'table';
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching data for ticker:', ticker, error);
-      });
-  });
-} else {
-  getQQQHoldings();
-}
-
-(async () => {
-
-    const data = await fetch(
-        'http://127.0.0.1:5000/ndx_data'
-    ).then(response => response.json());
-
-    // split the data set into ohlc and volume
-    let ohlc = [],
-        volume = [],
-        dataLength = data.length;
-
-
-    for (let i = 0; i < dataLength; i += 1) {
-        ohlc.push([
-          data[i]["Date"], // the date
-            parseFloat(data[i]["Open"].toFixed(1)), // open
-            parseFloat(data[i]["High"].toFixed(1)), // high
-            parseFloat(data[i]["Low"].toFixed(1)), // low
-            parseFloat(data[i]["Close"].toFixed(1)) // close
-        ]);
-
-        volume.push([
-            data[i]["Date"], // the date
-            data[i]["Volume"] // the volume
-        ]);
-    }
-
-  // filter 9 out of 10 data points from volume
-  // filter 9 out of 10 data points from  ohlc
-
-
-    // create the chart
-    Highcharts.stockChart('container', {
-        chart: {
-            height: 800
-        },
-        title: {
-            text: 'NDX Historical'
-        },
-        subtitle: {
-            text: 'All indicators'
-        },
-        accessibility: {
-            series: {
-                descriptionFormat: '{seriesDescription}.'
-            },
-            description: 'Use the dropdown menus above to display different indicator series on the chart.',
-            screenReaderSection: {
-                beforeChartFormat: '<{headingTagName}>{chartTitle}</{headingTagName}><div>{typeDescription}</div><div>{chartSubtitle}</div><div>{chartLongdesc}</div>'
+        <style>
+            body {
+                font-family: "Arial", sans-serif;
+                background: #f4f7f6;
+                margin: 0;
+                padding: 20px;
+                color: #333;
             }
-        },
-        legend: {
-            enabled: true
-        },
-        rangeSelector: {
-            selected: 2
-        },
-        yAxis: [{
-            height: '60%'
-        }, {
-            top: '60%',
-            height: '20%'
-        }, {
-            top: '80%',
-            height: '20%'
-        }],
-        plotOptions: {
-            spline: {
-                 marker: {
-                     enabled: false
-                 }
-            },
-            series: {
-                showInLegend: true,
-                accessibility: {
-                    exposeAsGroupOnly: true
+
+            .high-pe {
+                color: red;
+            }
+
+            .low-pe {
+                color: green;
+            }
+
+            h2 {
+                color: #2c3e50;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 25px 0;
+                font-size: 0.9em;
+                min-width: 400px;
+                box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+            }
+
+            thead tr {
+                background-color: #009879;
+                color: #ffffff;
+                text-align: left;
+            }
+
+            th,
+            td {
+                padding: 8px 10px;
+            }
+
+            tbody tr:nth-of-type(even) {
+                background-color: #1f1f1f;
+            }
+
+            tbody tr:hover {
+                background-color: #111111;
+            }
+
+            tbody tr.active-row {
+                font-weight: bold;
+                color: #009879;
+            }
+            .spinner {
+                border: 5px solid #f3f3f3;
+                border-top: 5px solid #3498db;
+                border-radius: 50%;
+                width: 50px;
+                height: 50px;
+                animation: spin 2s linear infinite;
+                margin: 50px auto;
+            }
+
+            @keyframes spin {
+                0% {
+                    transform: rotate(0deg);
+                }
+                100% {
+                    transform: rotate(360deg);
                 }
             }
-        },
+        </style>
+    </head>
+    <body>
+        <!-- <div class="main-wrapper"> -->
+        <!--     <div class="selectors-container"> -->
+        <!--         <div class="col"> -->
+        <!--             <label for="overlays">Overlays:</label> -->
+        <!--             <select class="left-select" id="overlays"> -->
+        <!--                 <option value="abands">Acceleration Bands</option> -->
+        <!--                 <option value="bb" selected="selected"> -->
+        <!--                     Bollinger Bands -->
+        <!--                 </option> -->
+        <!--                 <option value="dema"> -->
+        <!--                     DEMA (Double Exponential Moving Average) -->
+        <!--                 </option> -->
+        <!--                 <option value="ema"> -->
+        <!--                     EMA (Exponential Moving Average) -->
+        <!--                 </option> -->
+        <!--                 <option value="ikh">Ichimoku Kinko Hyo</option> -->
+        <!--                 <option value="keltnerchannels"> -->
+        <!--                     Keltner Channels -->
+        <!--                 </option> -->
+        <!--                 <option value="linearRegression"> -->
+        <!--                     Linear Regression -->
+        <!--                 </option> -->
+        <!--                 <option value="pivotpoints">Pivot Points</option> -->
+        <!--                 <option value="pc">Price Channel</option> -->
+        <!--                 <option value="priceenvelopes">Price Envelopes</option> -->
+        <!--                 <option value="psar">PSAR (Parabolic SAR)</option> -->
+        <!--                 <option value="sma">SMA (Simple Moving Average)</option> -->
+        <!--                 <option value="supertrend">Super Trend</option> -->
+        <!--                 <option value="tema"> -->
+        <!--                     TEMA (Triple Exponential Moving Average) -->
+        <!--                 </option> -->
+        <!--                 <option value="vbp">VbP (Volume by Price)</option> -->
+        <!--                 <option value="vwap"> -->
+        <!--                     WMA (Weighted Moving Average) -->
+        <!--                 </option> -->
+        <!--                 <option value="wma"> -->
+        <!--                     VWAP (Volume Weighted Average Price) -->
+        <!--                 </option> -->
+        <!--                 <option value="zigzag">Zig Zag</option> -->
+        <!--             </select> -->
+        <!--         </div> -->
+        <!--         <div class="col"> -->
+        <!--             <label for="oscillators">Oscillators:</label> -->
+        <!--             <select class="right-select" id="oscillators"> -->
+        <!--                 <option value="apo">Absolute price indicator</option> -->
+        <!--                 <option value="ad"> -->
+        <!--                     A/D (Accumulation/Distribution) -->
+        <!--                 </option> -->
+        <!--                 <option value="aroon">Aroon</option> -->
+        <!--                 <option value="aroonoscillator"> -->
+        <!--                     Aroon oscillator -->
+        <!--                 </option> -->
+        <!--                 <option value="atr">ATR (Average True Range)</option> -->
+        <!--                 <option value="ao">Awesome oscillator</option> -->
+        <!--                 <option value="cci"> -->
+        <!--                     CCI (Commodity Channel Index) -->
+        <!--                 </option> -->
+        <!--                 <option value="chaikin">Chaikin</option> -->
+        <!--                 <option value="cmf">CMF (Chaikin Money Flow)</option> -->
+        <!--                 <option value="disparityindex">Disparity Index</option> -->
+        <!--                 <option value="cmo"> -->
+        <!--                     CMO (Chande Momentum Oscillator) -->
+        <!--                 </option> -->
+        <!--                 <option value="dmi"> -->
+        <!--                     DMI (Directional Movement Index) -->
+        <!--                 </option> -->
+        <!--                 <option value="dpo">Detrended price</option> -->
+        <!--                 <option value="linearRegressionAngle"> -->
+        <!--                     Linear Regression Angle -->
+        <!--                 </option> -->
+        <!--                 <option value="linearRegressionIntercept"> -->
+        <!--                     Linear Regression Intercept -->
+        <!--                 </option> -->
+        <!--                 <option value="linearRegressionSlope"> -->
+        <!--                     Linear Regression Slope -->
+        <!--                 </option> -->
+        <!--                 <option value="klinger">Klinger Oscillator</option> -->
+        <!--                 <option value="macd"> -->
+        <!--                     MACD (Moving Average Convergence Divergence) -->
+        <!--                 </option> -->
+        <!--                 <option value="mfi">MFI (Money Flow Index)</option> -->
+        <!--                 <option value="momentum">Momentum</option> -->
+        <!--                 <option value="natr"> -->
+        <!--                     NATR (Normalized Average True Range) -->
+        <!--                 </option> -->
+        <!--                 <option value="obv">OBV (On-Balance Volume)</option> -->
+        <!--                 <option value="ppo">Percentage Price oscillator</option> -->
+        <!--                 <option value="roc">RoC (Rate of Change)</option> -->
+        <!--                 <option value="rsi" selected="selected"> -->
+        <!--                     RSI (Relative Strength Index) -->
+        <!--                 </option> -->
+        <!--                 <option value="slowstochastic">Slow Stochastic</option> -->
+        <!--                 <option value="stochastic">Stochastic</option> -->
+        <!--                 <option value="trix">TRIX</option> -->
+        <!--                 <option value="williamsr">Williams %R</option> -->
+        <!--             </select> -->
+        <!--         </div> -->
+        <!--     </div> -->
+        <!--     <div id="container"></div> -->
+        <!-- </div> -->
 
-        series: [{
-            type: 'candlestick',
-            id: 'ndx',
-            name: 'NDX',
-            data: ohlc
-        }, {
-            type: 'column',
-            id: 'volume',
-            name: 'Volume',
-            data: volume,
-            yAxis: 1
-        },
- {
-  type: 'sma',
-  linkedTo: 'ndx',
-   marker: {
-       enabled: false
-    },
-  params: {
-    period: 50
-  }
-},
+        <h2>NDX Nasdaq-100</h2>
+        <table id="stockTable">
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>Ticker</th>
+                    <th>Name</th>
+                    <th>Market<br />Cap</th>
+                    <th>P/E</th>
+                    <th>P/FCF</th>
+                    <th>P/S</th>
+                    <th>P/B</th>
+                    <th>PEG</th>
+                    <th>Beta</th>
+                    <th>
+                        Analyst <br />
+                        Recom.
+                    </th>
+                    <th>RSI</th>
+                    <th>CAGR <br />Perf5y</th>
+                    <th>CAGR <br />Perf10y</th>
+                    <th>CAGR <br />Perf15y</th>
+                    <th>CAGR <br />Sales5y</th>
+                    <th>CAGR <br />EPS5y</th>
+                    <th>Short %</th>
+                    <th>Employees</th>
+                    <th>Weight</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
 
-          {
-            type: 'rsi',
-            id: 'oscillator',
-            linkedTo: 'ndx',
-            yAxis: 2,
-marker: {
-       enabled: false
-    },
+        <div class="spinner" id="loadingSpinner"></div>
+        <div id="averagePe"></div>
 
-        }]
-    }, function (chart) {
-        document.getElementById('overlays').addEventListener('change', function (e) {
-            const series = chart.get('overlay');
+        <script>
+            function formatNumber(num) {
+                if (num >= 1e9) {
+                    return Math.round(num / 1e9) + "B";
+                }
+                if (num >= 1e3) {
+                    return Math.round(num / 1e3) + "k";
+                }
+                return num.toString();
+            }
 
-            if (series) {
-                series.remove(false);
-                chart.addSeries({
-                    type: e.target.value,
-                    linkedTo: 'aapl',
-                    id: 'overlay'
+            function roundAndConvertUnit(str) {
+                const numericPart = parseFloat(str.slice(0, -1));
+                const unit = str.slice(-1).toUpperCase();
+                let roundedNumber;
+                let newUnit = unit;
+                if (unit === "B" && numericPart >= 1000) {
+                    roundedNumber = (numericPart / 1000).toFixed(1);
+                    newUnit = "T";
+                } else if (unit === "B") {
+                    roundedNumber = Math.round(numericPart);
+                } else if (unit === "T") {
+                    roundedNumber = numericPart.toFixed(1);
+                } else {
+                    roundedNumber = Math.round(numericPart);
+                }
+                return `${roundedNumber}${newUnit}`;
+            }
+
+            function classifyCellByValue(type, content, cell) {
+                const value = parseFloat(content);
+
+                let thresholdHigh, thresholdLow, classHigh, classLow;
+
+                switch (type) {
+                    case "pe":
+                        thresholdHigh = 40;
+                        thresholdLow = 10;
+                        break;
+                    case "Recom":
+                        thresholdHigh = 2.5;
+                        thresholdLow = 1.5;
+                        break;
+                    case "rsi":
+                        thresholdHigh = 70;
+                        thresholdLow = 30;
+                        break;
+                    default:
+                        return;
+                }
+
+                if (value > thresholdHigh) {
+                    cell.classList.add("high-pe");
+                } else if (value < thresholdLow) {
+                    cell.classList.add("low-pe");
+                }
+            }
+
+            function addCell(content, type = "") {
+                const table = document.getElementById("stockTable");
+                const lastRow = table.rows[table.rows.length - 1];
+                const cell = lastRow.insertCell(lastRow.cells.length);
+
+                if (type === "beta" && parseFloat(content) > 2) {
+                    const span = document.createElement("span");
+                    span.style.color = "red";
+                    span.textContent = content;
+                    cell.appendChild(span);
+                } else {
+                    cell.textContent = content;
+                }
+
+                classifyCellByValue(type, content, cell);
+            }
+
+            function checkNaN(value, formatter = (val) => val, suffix = "") {
+                if (isNaN(value)) {
+                    return "-";
+                } else {
+                    return formatter(value) + suffix;
+                }
+            }
+
+            let weightedPeSum = 0;
+            let totalWeight = 0;
+            let weightedPeValues = [];
+
+            function addCells(stock, index) {
+                const tableBody = document
+                    .getElementById("stockTable")
+                    .getElementsByTagName("tbody")[0];
+                const row = tableBody.insertRow();
+                const keys = [
+                    "symbol",
+                    "short_name",
+                    "market_cap",
+                    "price_earnings",
+                    "price_free_cash_flow",
+                    "price_sales",
+                    "price_book",
+                    "peg",
+                    "beta",
+                    "recommendation",
+                    "rsi",
+                    "cagr_5y",
+                    "cagr_10y",
+                    "cagr_15y",
+                    "sales_5y",
+                    "eps_5y",
+                    "short",
+                    "employees",
+                    "weight",
+                ];
+                const formatters = {
+                    symbol: (val) => val,
+                    shortName: (val) => val,
+                    market_cap: (val) => formatLargeNumber(val),
+                    price_earnings: (val) => checkNaN(val, Math.round),
+                    price_book: (val) => checkNaN(val, Math.round),
+                    "P/FCF": (val) => checkNaN(val, Math.round),
+                    "P/S": (val) => checkNaN(val, Math.round),
+                    priceToBook: (val) => checkNaN(val, Math.round),
+                    pegRatio: (val) => checkNaN(val, (val) => val.toFixed(1)),
+                    beta: (val) => checkNaN(val, (val) => val.toFixed(1)),
+                    Recom: (val) => checkNaN(val, (val) => val),
+                    rsi: (val) => checkNaN(val, Math.round),
+                    cagr_5y: (val) => (val ? val.toFixed(1) + "%" : "-"),
+                    cagr_10y: (val) => (val ? val.toFixed(1) + "%" : "-"),
+                    cagr_15y: (val) => (val ? val.toFixed(1) + "%" : "-"),
+                    sales_5y: (val) =>
+                        val == null ? "-" : `${Math.round(parseFloat(val))}%`,
+                    eps_5y: (val) =>
+                        val == "-" ? "-" : `${Math.round(parseFloat(val))}%`,
+                    short: (val) =>
+                        checkNaN(val * 100, (val) => val.toFixed(2), "%"),
+                    employees: (val) => (val ? formatNumber(val) : "-"),
+                    weight: (val) => (val ? val + "%" : "-"),
+                };
+                const specialTypes = {
+                    "pe": "pe",
+                    "price_free_cash_flow": "pe",
+                    beta: "beta",
+                    "rsi": "rsi",
+                    "recommandation": "Recom",
+                };
+
+                addCell(index + 1);
+
+                keys.forEach((key) => {
+                    let content = stock[key];
+                    if (formatters.hasOwnProperty(key)) {
+                        content = formatters[key](stock[key]);
+                    }
+                    const type = specialTypes[key] || "";
+                    addCell(content, type);
                 });
             }
-        });
 
-        document.getElementById('oscillators').addEventListener('change', function (e) {
-            const series = chart.get('oscillator');
-
-            if (series) {
-                series.remove(false);
-                chart.addSeries({
-                    type: e.target.value,
-                    linkedTo: 'aapl',
-                    id: 'oscillator',
-                    yAxis: 2
-                });
+            function formatLargeNumber(number) {
+                // Trillions
+                if (number >= 1e12) {
+                    return (number / 1e12).toFixed(2) + "T";
+                }
+                // Billions
+                else if (number >= 1e9) {
+                    return (number / 1e9).toFixed(0) + "B";
+                }
+                // Millions
+                else if (number >= 1e6) {
+                    return (number / 1e6).toFixed(2) + "M";
+                }
+                // Thousands
+                else if (number >= 1e3) {
+                    return (number / 1e3).toFixed(2) + "K";
+                } else {
+                    return number.toString();
+                }
             }
-        });
-    });
-})();
 
-</script>
-</body>
+            // Function to fetch stock data and populate the table
+            function getQQQHoldings() {
+                const url = "https://finance.beuke.org/ndx";
+                fetch(url)
+                    .then((response) => response.json())
+                    .then((data) => {
+                        const tableBody = document
+                            .getElementById("stockTable")
+                            .getElementsByTagName("tbody")[0];
+                        const spinner =
+                            document.getElementById("loadingSpinner");
+
+                        data.sort((a, b) => {
+                            return b.market_cap - a.market_cap;
+                        });
+                        data.forEach((stock, index) => {
+                            const row = tableBody.insertRow();
+
+                            const pe = stock["P/E"];
+                            const weight = parseFloat(stock["weight"]);
+
+                            if (!isNaN(pe) && !isNaN(weight)) {
+                                for (let i = 0; i < weight; i++) {
+                                    weightedPeValues.push(parseFloat(pe));
+                                }
+                            }
+                            addCells(stock, index);
+                        });
+                        // Hide spinner and show table when data is loaded
+                        spinner.style.display = "none";
+                        stockTable.style.display = "table";
+
+                        if (weightedPeValues.length > 0) {
+                            const sortedWeightedPeValues =
+                                weightedPeValues.sort((a, b) => a - b);
+                            const middleIndex = Math.floor(
+                                sortedWeightedPeValues.length / 2
+                            );
+                            const weightedMedianPe =
+                                sortedWeightedPeValues.length % 2 !== 0
+                                    ? sortedWeightedPeValues[middleIndex]
+                                    : (
+                                          (sortedWeightedPeValues[
+                                              middleIndex - 1
+                                          ] +
+                                              sortedWeightedPeValues[
+                                                  middleIndex
+                                              ]) /
+                                          2
+                                      ).toFixed(2);
+                             document.getElementById("averagePe").textContent =
+                                `Weighted Median P/E: ${weightedMedianPe}`;
+                        } else {
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error fetching data:", error);
+                        // Hide spinner if there is an error
+                        document.getElementById(
+                            "loadingSpinner"
+                        ).style.display = "none";
+                    });
+            }
+
+            // Call the function to fetch and display the data
+
+            // check if site has a query parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const tickers = urlParams.get("quotes");
+
+            if (tickers) {
+                // Split the tickers into an array, even if there's only one ticker without commas
+                const tickerArray = tickers
+                    .split(",")
+                    .map((ticker) => ticker.trim()); // Trim whitespace from each ticker
+
+                // Loop through each ticker and make a request to the finance API
+                let index = 0;
+                tickerArray.forEach((ticker) => {
+                    const url = "https://finance.beuke.org/quote/" + ticker;
+                    fetch(url)
+                        .then((response) => response.json())
+                        .then((data) => {
+                            const tableBody = document
+                                .getElementById("stockTable")
+                                .getElementsByTagName("tbody")[0];
+                            const spinner =
+                                document.getElementById("loadingSpinner");
+                            console.log(data);
+                            addCells(data, index); // You need to define this function to add data to the table
+                            index = index + 1;
+                            if (index === tickerArray.length) {
+                                // Hide spinner and show table when data is loaded
+                                spinner.style.display = "none";
+                                stockTable.style.display = "table";
+                            }
+                        })
+                        .catch((error) => {
+                            console.error(
+                                "Error fetching data for ticker:",
+                                ticker,
+                                error
+                            );
+                        });
+                });
+            } else {
+                getQQQHoldings();
+            }
+
+            (async () => {
+                const data = await fetch("http://127.0.0.1:5000/ndx_data").then(
+                    (response) => response.json()
+                );
+
+                // split the data set into ohlc and volume
+                let ohlc = [],
+                    volume = [],
+                    dataLength = data.length;
+
+                for (let i = 0; i < dataLength; i += 1) {
+                    ohlc.push([
+                        data[i]["Date"], // the date
+                        parseFloat(data[i]["Open"].toFixed(1)), // open
+                        parseFloat(data[i]["High"].toFixed(1)), // high
+                        parseFloat(data[i]["Low"].toFixed(1)), // low
+                        parseFloat(data[i]["Close"].toFixed(1)), // close
+                    ]);
+
+                    volume.push([
+                        data[i]["Date"], // the date
+                        data[i]["Volume"], // the volume
+                    ]);
+                }
+
+                // filter 9 out of 10 data points from volume
+                // filter 9 out of 10 data points from  ohlc
+
+                // create the chart
+                Highcharts.stockChart(
+                    "container",
+                    {
+                        chart: {
+                            height: 800,
+                        },
+                        title: {
+                            text: "NDX Historical",
+                        },
+                        subtitle: {
+                            text: "All indicators",
+                        },
+                        accessibility: {
+                            series: {
+                                descriptionFormat: "{seriesDescription}.",
+                            },
+                            description:
+                                "Use the dropdown menus above to display different indicator series on the chart.",
+                            screenReaderSection: {
+                                beforeChartFormat:
+                                    "<{headingTagName}>{chartTitle}</{headingTagName}><div>{typeDescription}</div><div>{chartSubtitle}</div><div>{chartLongdesc}</div>",
+                            },
+                        },
+                        legend: {
+                            enabled: true,
+                        },
+                        rangeSelector: {
+                            allButtonsEnabled: true,
+                            buttons: [
+                                {
+                                    type: "days",
+                                    count: 3,
+                                    text: "Day",
+                                    dataGrouping: {
+                                        forced: true,
+                                        units: [["day", [1]]],
+                                    },
+                                },
+                                {
+                                    type: "year",
+                                    count: 1,
+                                    text: "Week",
+                                    dataGrouping: {
+                                        forced: true,
+                                        units: [["week", [1]]],
+                                    },
+                                },
+                                {
+                                    type: "all",
+                                    text: "Month",
+                                    dataGrouping: {
+                                        forced: true,
+                                        units: [["month", [1]]],
+                                    },
+                                },
+                            ],
+                            buttonTheme: {
+                                width: 60,
+                            },
+                            selected: 2,
+                        },
+
+                        yAxis: [
+                            {
+                                height: "60%",
+                            },
+                            {
+                                top: "60%",
+                                height: "20%",
+                            },
+                            {
+                                top: "80%",
+                                height: "20%",
+                            },
+                        ],
+                        plotOptions: {
+                            spline: {
+                                marker: {
+                                    enabled: false,
+                                },
+                            },
+                            series: {
+                                showInLegend: true,
+                                accessibility: {
+                                    exposeAsGroupOnly: true,
+                                },
+                            },
+                        },
+
+                        series: [
+                            {
+                                type: "candlestick",
+                                id: "ndx",
+                                name: "NDX",
+                                data: ohlc,
+                                dataGrouping: {
+                                    groupPixelWidth: 30, // Quantity of points to group
+                                },
+                            },
+                            {
+                                type: "column",
+                                id: "volume",
+                                name: "Volume",
+                                data: volume,
+                                yAxis: 1,
+                            },
+                            {
+                                type: "sma",
+                                linkedTo: "ndx",
+                                marker: {
+                                    enabled: false,
+                                },
+                                params: {
+                                    period: 50,
+                                },
+                            },
+                            {
+                                type: "rsi",
+                                id: "oscillator",
+                                linkedTo: "ndx",
+                                yAxis: 2,
+                                marker: {
+                                    enabled: false,
+                                },
+                            },
+                        ],
+                    },
+                    function (chart) {
+                        document
+                            .getElementById("overlays")
+                            .addEventListener("change", function (e) {
+                                const series = chart.get("overlay");
+
+                                if (series) {
+                                    series.remove(false);
+                                    chart.addSeries({
+                                        type: e.target.value,
+                                        linkedTo: "aapl",
+                                        id: "overlay",
+                                    });
+                                }
+                            });
+
+                        document
+                            .getElementById("oscillators")
+                            .addEventListener("change", function (e) {
+                                const series = chart.get("oscillator");
+
+                                if (series) {
+                                    series.remove(false);
+                                    chart.addSeries({
+                                        type: e.target.value,
+                                        linkedTo: "aapl",
+                                        id: "oscillator",
+                                        yAxis: 2,
+                                    });
+                                }
+                            });
+                    }
+                );
+            })();
+        </script>
+    </body>
 </html>
-
