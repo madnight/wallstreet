@@ -118,9 +118,9 @@ def get_all_stock_data(symbols):
                 data = future.result()
                 if data:
                     all_data.append(data)
-                    print(f"✓ Fetched {symbol}")
             except Exception as e:
-                print(f"{Fore.RED}✗ Failed to fetch {symbol}: {str(e)}{Style.RESET_ALL}")
+                # Silently skip failed symbols
+                pass
     
     # Sort by original order
     symbol_order = {symbol: i for i, symbol in enumerate(symbols)}
@@ -131,12 +131,10 @@ def get_all_stock_data(symbols):
 def print_stock_data(data):
     """Print stock data in a formatted table"""
     if not data:
-        print(f"{Fore.RED}No data to display{Style.RESET_ALL}")
         return
-    print("\n" + tabulate(data, headers='keys', tablefmt='simple_outline'))
+    print(tabulate(data, headers='keys', tablefmt='simple_outline'))
 
 if __name__ == '__main__':
     symbols = parse_arguments()
-    print(f"\n{Fore.CYAN}Fetching stock data for: {', '.join(symbols)}{Style.RESET_ALL}\n")
     data = get_all_stock_data(symbols)
     print_stock_data(data)
