@@ -1,8 +1,11 @@
-from colorama import Fore, Style
 import yfinance as yf
 import argparse
-from tabulate import tabulate
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
+# ANSI color codes
+GREEN = '\033[92m'
+RED = '\033[91m'
+RESET = '\033[0m'
 
 def format_number(num):
     """Format large numbers with K, M, B, T suffixes"""
@@ -30,7 +33,7 @@ def format_percentage(value):
     try:
         pct = float(value) * 100
         pct_str = f'{pct:.2f}%'
-        return Fore.RED + pct_str + Style.RESET_ALL if pct < 0 else Fore.GREEN + pct_str + Style.RESET_ALL
+        return RED + pct_str + RESET if pct < 0 else GREEN + pct_str + RESET
     except (ValueError, TypeError):
         return 'N/A'
 
@@ -99,7 +102,6 @@ def get_stock_info(symbol):
             '52W High': f"${info.get('fiftyTwoWeekHigh'):.2f}" if info.get('fiftyTwoWeekHigh') else 'N/A',
         }
     except Exception as e:
-        print(f"{Fore.RED}Error fetching data for {symbol}: {str(e)}{Style.RESET_ALL}")
         return None
 
 def get_all_stock_data(symbols):
@@ -129,10 +131,54 @@ def get_all_stock_data(symbols):
     return all_data
 
 def print_stock_data(data):
-    """Print stock data in a formatted table"""
+    """Print stock data in a formatted table with solid lines"""
     if not data:
         return
-    print(tabulate(data, headers='keys', tablefmt='simple_outline'))
+    
+    # Get headers from first row
+    headers = list(data[0].keys())
+    
+    # Calculate column widths
+    col_widths = {}
+    for header in headers:
+        # Remove ANSI codes for width calculation
+        max_width = len(header)
+        for row in data:
+            value_str = str(row[header])
+            # Remove ANSI codes for accurate width
+            clean_value = value_str.replace(GREEN, '').replace(RED, '').replace(RESET, '')
+            max_width = max(max_width, len(clean_value))
+        col_widths[header] = max_width
+    
+    # Box drawing characters
+    sep = ' │ '
+    
+    # Print top border
+    top_parts = [('─' * col_widths[h]) for h in headers]
+    print('┌─' + '─┬─'.join(top_parts) + '─┐')
+    
+    # Print header
+    header_parts = [h.ljust(col_widths[h]) for h in headers]
+    print('│ ' + sep.join(header_parts) + ' │')
+    
+    # Print header separator
+    mid_parts = [('─' * col_widths[h]) for h in headers]
+    print('├─' + '─┼─'.join(mid_parts) + '─┤')
+    
+    # Print rows
+    for i, row in enumerate(data):
+        row_parts = []
+        for header in headers:
+            value_str = str(row[header])
+            # Calculate padding considering ANSI codes
+            clean_value = value_str.replace(GREEN, '').replace(RED, '').replace(RESET, '')
+            padding = col_widths[header] - len(clean_value)
+            row_parts.append(value_str + ' ' * padding)
+        print('│ ' + sep.join(row_parts) + ' │')
+    
+    # Print bottom border
+    bottom_parts = [('─' * col_widths[h]) for h in headers]
+    print('└─' + '─┴─'.join(bottom_parts) + '─┘')
 
 if __name__ == '__main__':
     symbols = parse_arguments()
