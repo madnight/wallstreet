@@ -2,7 +2,6 @@
 Stock quotes and comprehensive data for the terminal using Yahoo Finance
 
 <a href="https://opensource.org/licenses/MIT"><img height="20" src="https://img.shields.io/badge/License-MIT-brightgreen.svg" alt="License: MIT" /></a>
-<a href="https://codeclimate.com/github/madnight/wallstreet/issues"><img height="20" src="https://codeclimate.com/github/madnight/wallstreet/badges/issue_count.svg?maxAge=2592000" alt="Issue Count" /></a>
  <br> <br>
 ![image](https://github.com/madnight/wallstreet/assets/10064471/61bac8ff-83a7-41f1-8f11-7f1f96cadc54)
 
