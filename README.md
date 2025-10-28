@@ -18,19 +18,8 @@ Stock quotes and comprehensive data for the terminal using Yahoo Finance
   - EPS and analyst target price
 - Clean, colorful terminal output
 
-# Installation
-
-## Install uv (if not already installed)
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-
 # Usage
 ```bash
-# clone and setup
-git clone https://github.com/madnight/wallstreet
-cd wallstreet
-
 # run with default stocks (AAPL,MSFT,GOOGL,INTC,AMD,PEP,MU,TSLA,NFLX,DIS,AMZN,SPY,QQQ)
 uv run main.py
 
@@ -43,5 +32,3 @@ uv run main.py TSLA
 # get help
 uv run main.py --help
 ```
-
-**Note:** All API requests are made in parallel for faster performance!
