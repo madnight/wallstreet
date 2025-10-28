@@ -1,7 +1,8 @@
 from colorama import Fore, Style
 import yfinance as yf
-import configparser
+import argparse
 from tabulate import tabulate
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 def format_number(num):
     """Format large numbers with K, M, B, T suffixes"""
@@ -43,11 +44,30 @@ def format_simple_percentage(value):
     except (ValueError, TypeError):
         return 'N/A'
 
-def read_config_file(filename):
-    """Read stock symbols from config file"""
-    config = configparser.ConfigParser()
-    config.read(filename)
-    return [s.strip() for s in config.get('Symbols', 'stocks').split(',')]
+def parse_arguments():
+    """Parse command line arguments"""
+    parser = argparse.ArgumentParser(
+        description='Fetch stock data from Yahoo Finance',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog='''
+Examples:
+  %(prog)s                    # Use default stocks
+  %(prog)s AAPL MSFT GOOGL    # Fetch specific stocks
+  %(prog)s TSLA               # Fetch single stock
+        '''
+    )
+    parser.add_argument(
+        'symbols',
+        nargs='*',
+        help='Stock symbols to fetch (default: AAPL,MSFT,GOOGL,INTC,AMD,PEP,MU,TSLA,NFLX,DIS,AMZN,SPY,QQQ)'
+    )
+    args = parser.parse_args()
+    
+    # Use default symbols if none provided
+    if not args.symbols:
+        return ['AAPL', 'MSFT', 'GOOGL', 'INTC', 'AMD', 'PEP', 'MU', 'TSLA', 'NFLX', 'DIS', 'AMZN', 'SPY', 'QQQ']
+    
+    return [s.strip().upper() for s in args.symbols]
 
 def get_stock_info(symbol):
     """Fetch comprehensive stock data from yfinance"""
@@ -83,13 +103,29 @@ def get_stock_info(symbol):
         return None
 
 def get_all_stock_data(symbols):
-    """Fetch data for all symbols"""
+    """Fetch data for all symbols in parallel"""
     all_data = []
-    for symbol in symbols:
-        print(f"Fetching data for {symbol}...")
-        data = get_stock_info(symbol)
-        if data:
-            all_data.append(data)
+    
+    # Use ThreadPoolExecutor for parallel requests
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        # Submit all tasks
+        future_to_symbol = {executor.submit(get_stock_info, symbol): symbol for symbol in symbols}
+        
+        # Collect results as they complete
+        for future in as_completed(future_to_symbol):
+            symbol = future_to_symbol[future]
+            try:
+                data = future.result()
+                if data:
+                    all_data.append(data)
+                    print(f"✓ Fetched {symbol}")
+            except Exception as e:
+                print(f"{Fore.RED}✗ Failed to fetch {symbol}: {str(e)}{Style.RESET_ALL}")
+    
+    # Sort by original order
+    symbol_order = {symbol: i for i, symbol in enumerate(symbols)}
+    all_data.sort(key=lambda x: symbol_order.get(x['Symbol'], 999))
+    
     return all_data
 
 def print_stock_data(data):
@@ -100,7 +136,7 @@ def print_stock_data(data):
     print("\n" + tabulate(data, headers='keys', tablefmt='simple_outline'))
 
 if __name__ == '__main__':
-    symbols = read_config_file('config.ini')
+    symbols = parse_arguments()
     print(f"\n{Fore.CYAN}Fetching stock data for: {', '.join(symbols)}{Style.RESET_ALL}\n")
     data = get_all_stock_data(symbols)
     print_stock_data(data)

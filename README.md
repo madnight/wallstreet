@@ -31,18 +31,17 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 git clone https://github.com/madnight/wallstreet
 cd wallstreet
 
-# run (uv will automatically create venv and install dependencies)
+# run with default stocks (AAPL,MSFT,GOOGL,INTC,AMD,PEP,MU,TSLA,NFLX,DIS,AMZN,SPY,QQQ)
 uv run main.py
 
-# or manually install dependencies first
-uv sync
-uv run main.py
+# fetch specific stocks
+uv run main.py AAPL MSFT GOOGL
+
+# fetch a single stock
+uv run main.py TSLA
+
+# get help
+uv run main.py --help
 ```
 
-# Config
-
-The list of stocks can be configured via the config.ini file.
-```ini
-[Symbols]
-stocks = AAPL,MSFT,GOOGL,INTC,AMD,PEP,MU,TSLA,NFLX,DIS,AMZN,SPY,QQQ
-```
+**Note:** All API requests are made in parallel for faster performance!
